@@ -1,4 +1,4 @@
-Plugin Machine Intelligence
+Hop Machine Intelligence
 ============================
 
 The hop-mi project is a version of PMI (Plugin Machine Intelligence) for the Apache Hop platform. It (initially) provides access to supervised machine learning algorithms from various underlying "engines". Out of the box, hop-mi provides six engines: Weka, Python scikit-learn, R MLR, Spark MLlib, DL4j (deep learning) and KerasApplication (Keras zoo models backed by TensorFlow). The following learning schemes are supported, and are available in most of the engines: decision tree classifier, decision tree regressor, gradient boosted trees, linear regression, logistic regression, naive Bayes, naive Bayes multinomial, naive Bayes incremental, random forest classifier, random forest regressor, support vector classifier, support vector regressor, multi-layer perceptrons and deep learning networks. hop-mi/PMI is designed to be extensible via the addition of new engines and algorithms.
