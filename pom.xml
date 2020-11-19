@@ -11,7 +11,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.target>1.8</maven.compiler.target>
     <maven.compiler.source>1.8</maven.compiler.source>
-    <hop.version>0.40-SNAPSHOT</hop.version>
+    <hop.version>0.50-SNAPSHOT</hop.version>
     <!-- <weka.version>3.8.3.1</weka.version> -->
     <weka.version>3.8.5</weka.version>
     <weka.timeseries.version>1.0.25</weka.timeseries.version>
@@ -22,32 +22,21 @@
     <maven.build.timestamp.format>yyyyMMdd-HHmm</maven.build.timestamp.format>
   </properties>
   
-<repositories>
-    <repository>
-      <id>swt-repo</id>
-      <url>https://swt-repo.googlecode.com/svn/repo/</url>
-    </repository>
-    <repository>
-      <id>hop-repo</id>
-      <url>https://artifactory.project-hop.org/artifactory/hop-snapshots-local/</url>
-    </repository>
-  </repositories>
-  
   <dependencies>
     <dependency>
-      <groupId>org.hop</groupId>
+      <groupId>org.apache.hop</groupId>
       <artifactId>hop-engine</artifactId>
       <version>${hop.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.hop</groupId>
+      <groupId>org.apache.hop</groupId>
       <artifactId>hop-core</artifactId>
       <version>${hop.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.hop</groupId>
+      <groupId>org.apache.hop</groupId>
       <artifactId>hop-ui-swt</artifactId>
       <version>${hop.version}</version>
       <scope>provided</scope>
@@ -58,11 +47,6 @@
       <version>4.3</version>
       <scope>provided</scope>
     </dependency>
-<!--    <dependency>
-      <groupId>pentaho.weka</groupId>
-      <artifactId>pdm-ce</artifactId>
-      <version>${weka.version}</version>
-    </dependency> -->
 
 <!--    <dependency>
       <groupId>nz.ac.waikato.cms.weka</groupId>
