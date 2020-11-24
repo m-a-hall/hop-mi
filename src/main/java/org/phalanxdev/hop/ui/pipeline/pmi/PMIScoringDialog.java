@@ -343,7 +343,7 @@ public class PMIScoringDialog extends BaseTransformDialog implements ITransformD
           } */
 
           HopVfsFileDialog fileChooserDialog = HopVfsFileDialog.getInstance() == null
-              ? new HopVfsFileDialog( shell, null, initialFile, true, false ) : HopVfsFileDialog.getInstance();
+              ? new HopVfsFileDialog( shell, null, initialFile, false, false ) : HopVfsFileDialog.getInstance();
 
               //HopGui.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
 
@@ -352,6 +352,8 @@ public class PMIScoringDialog extends BaseTransformDialog implements ITransformD
           fileChooserDialog.defaultInitialFile = rootFile; */
 
           // String in = ( !org.apache.hop.core.util.Utils.isEmpty( m_wFilename.getText() ) ) ? initialFile.getName().getPath() : null;
+          fileChooserDialog.setFilterExtensions(extensions);
+          fileChooserDialog.setFilterNames(filterNames);
           String
               selectedFile = fileChooserDialog.open();
               /* fileChooserDialog.open( shell, null, "file", true, in, extensions, filterNames,
@@ -394,13 +396,12 @@ public class PMIScoringDialog extends BaseTransformDialog implements ITransformD
           filterNames[1] = BaseMessages.getString( PMIScoringMeta.PKG, "System.FileType.AllFiles" );
         }
         dialog.setFilterExtensions( extensions );
+        dialog.setFilterNames( filterNames );
         if ( m_wSaveFilename.getText() != null ) {
           dialog.setFileName( pipelineMeta.environmentSubstitute( m_wSaveFilename.getText() ) );
         }
-        dialog.setFilterNames( filterNames );
 
         if ( dialog.open() != null ) {
-
           m_wSaveFilename
               .setText( dialog.getFilterPath() + System.getProperty( "file.separator" ) + dialog.getFileName() );
         }

@@ -447,7 +447,8 @@ public class PMIScoringMeta extends BaseTransformMeta implements ITransformMeta<
    *
    * @return a <code>String</code> containing the XML
    */
-  public String getXML() {
+  @Override
+  public String getXml() {
     return getXML( true );
   }
 
@@ -528,7 +529,8 @@ public class PMIScoringMeta extends BaseTransformMeta implements ITransformMeta<
    *
    * @param transformNode the step to load
    */
-  public void loadXML( Node transformNode, IHopMetadataProvider metadataProvider ) {
+  @Override
+  public void loadXml( Node transformNode, IHopMetadataProvider metadataProvider ) {
     String temp = XmlHandler.getTagValue( transformNode, "file_name_from_field" );
     if ( temp.equalsIgnoreCase( "N" ) ) {
       m_fileNameFromField = false;
