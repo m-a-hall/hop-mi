@@ -618,7 +618,7 @@ public class BaseSupervisedPMIData extends BaseTransformData implements ITransfo
           String prefBatchS = ((BatchPredictor) evaluator.getClassifierTemplate()).getBatchSize();
           if (!org.apache.hop.core.util.Utils.isEmpty(prefBatchS)) {
             m_batchPredictorPreferredBatchSize = Integer
-                .parseInt(vars.environmentSubstitute(prefBatchS));
+                .parseInt(vars.resolve(prefBatchS));
           }
         }
         evaluator.performEvaluation(null, new LogAdapter(log), new VariablesAdapter(vars));
@@ -638,7 +638,7 @@ public class BaseSupervisedPMIData extends BaseTransformData implements ITransfo
               .supportsResumableTraining()) {
             // TODO load model and perform training iterations with trainingData
             List<Object> loaded = loadModel(
-                vars.environmentSubstitute(stepMeta.getResumableModelPath()), log);
+                vars.resolve(stepMeta.getResumableModelPath()), log);
             trainedFullModel = (Classifier) loaded.get(0);
             Evaluator.enableClassifierLoggingIfSupported(trainedFullModel, log);
             Evaluator.configureWekaEnvironmentHandler(trainedFullModel, new VariablesAdapter(vars));
@@ -1209,7 +1209,7 @@ public class BaseSupervisedPMIData extends BaseTransformData implements ITransfo
           org.apache.hop.core.util.Utils.isEmpty(stepMeta.getClassField()) ?
               stepMeta.getFieldMetadata().get(stepMeta.getFieldMetadata().size() - 1) : null;
       if (classArffMeta == null) {
-        String classFieldName = vars.environmentSubstitute(stepMeta.getClassField());
+        String classFieldName = vars.resolve(stepMeta.getClassField());
         for (ArffMeta m : stepMeta.getFieldMetadata()) {
           if (m.getFieldName().equals(classFieldName)) {
             classArffMeta = m;

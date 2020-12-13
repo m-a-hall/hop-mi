@@ -36,6 +36,7 @@ import org.apache.hop.core.logging.ILogChannel;
 import org.apache.hop.core.row.IRowMeta;
 import org.apache.hop.core.row.IValueMeta;
 import org.apache.hop.core.row.RowDataUtil;
+import org.apache.hop.core.variables.IVariables;
 import org.apache.hop.i18n.BaseMessages;
 import org.apache.hop.pipeline.PipelineMeta;
 import org.apache.hop.pipeline.transform.BaseTransformData;
@@ -304,7 +305,7 @@ public class PMIForecastingData extends BaseTransformData implements ITransformD
    *
    * @param inputMeta   the incoming row meta data
    * @param outputMeta  the outgoing row meta data
-   * @param meta        the forecasting meta
+   * @param variables   the variables to use
    * @param overlayData a list of rows for future time steps (in the same format
    *                    as the incoming rows) containing values for "overlay" fields. May
    *                    be null if overlay data is not in use.
@@ -312,7 +313,7 @@ public class PMIForecastingData extends BaseTransformData implements ITransformD
    * @throws Exception if a problem occurs.
    */
   public List<Object[]> generateForecast( IRowMeta inputMeta, IRowMeta outputMeta,
-      PMIForecastingMeta meta, List<Object[]> overlayData, PipelineMeta transMeta, PrintStream... progress )
+      PMIForecastingMeta meta, List<Object[]> overlayData, IVariables variables, PrintStream... progress )
       throws Exception {
 
     int[] mappingIndexes = meta.getMappingIndexes();
@@ -340,7 +341,7 @@ public class PMIForecastingData extends BaseTransformData implements ITransformD
         // initial value to whatever offset from training that the user has
         // indicated to be the first forecasted point.
         double artificialStartValue = lagMaker.getArtificialTimeStartValue();
-        String art = transMeta.environmentSubstitute( meta.getArtificialTimeStartOffset() );
+        String art = variables.resolve( meta.getArtificialTimeStartOffset() );
         artificialStartValue += Integer.parseInt( art );
         lagMaker.setArtificialTimeStartValue( artificialStartValue );
       }
@@ -351,7 +352,7 @@ public class PMIForecastingData extends BaseTransformData implements ITransformD
         ( overlayData != null && overlayData.size() > 0 && model.getModel() instanceof OverlayForecaster
             && ( (OverlayForecaster) model.getModel() ).isUsingOverlayData() );
 
-    String numS = transMeta.environmentSubstitute( meta.getNumStepsToForecast() );
+    String numS = variables.resolve( meta.getNumStepsToForecast() );
     int numSteps = ( overlay ) ? overlayData.size() : Integer.parseInt( numS );
     Instances overlayAsInstances = null;
 

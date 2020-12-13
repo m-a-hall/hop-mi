@@ -21,6 +21,7 @@ import org.apache.hop.core.exception.HopException;
 import org.apache.hop.core.row.IRowMeta;
 import org.apache.hop.core.row.value.ValueMetaFactory;
 import org.apache.hop.core.util.Utils;
+import org.apache.hop.core.variables.IVariables;
 import org.phalanxdev.hop.utils.ArffMeta;
 import org.apache.hop.i18n.BaseMessages;
 import org.apache.hop.pipeline.PipelineMeta;
@@ -159,11 +160,32 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
    */
   protected Flow m_currentFlow;
 
-  public PMIFlowExecutorDialog( Shell parent, Object in, PipelineMeta tr, String sname ) {
-    super( parent, (BaseTransformMeta) in, tr, sname );
+  public PMIFlowExecutorDialog( Shell parent, IVariables variables, BaseTransformMeta baseTransformMeta,
+      PipelineMeta pipelineMeta, String transformname ) {
+    super( parent, variables, baseTransformMeta, pipelineMeta, transformname );
+
+    m_currentMeta = (PMIFlowExecutorMeta) baseTransformMeta;
+    m_originalMeta = (PMIFlowExecutorMeta) m_currentMeta.clone();
+    init(variables);
+  }
+
+  public PMIFlowExecutorDialog( Shell parent, IVariables variables, Object in, PipelineMeta tr, String sname ) {
+    super( parent, variables, (BaseTransformMeta) in, tr, sname );
 
     m_currentMeta = (PMIFlowExecutorMeta) in;
     m_originalMeta = (PMIFlowExecutorMeta) m_currentMeta.clone();
+    init(variables);
+  }
+
+  public PMIFlowExecutorDialog( Shell parent, int nr, IVariables variables, Object in, PipelineMeta tr ) {
+    super( parent, nr, variables, (BaseTransformMeta) in, tr );
+    
+    m_currentMeta = (PMIFlowExecutorMeta) in;
+    m_originalMeta = (PMIFlowExecutorMeta) m_currentMeta.clone();
+    init(variables);
+  }
+
+  protected void init(IVariables variables) {
     // check to see if the KettleInject KF component has been registered in Weka's PluginManager
     checkKFInjectRegistered();
     m_kfApp = new KnowledgeFlowApp();
@@ -176,11 +198,11 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
 
     List<String> transVarsInUse = pipelineMeta.getUsedVariables();
     for ( String varName : transVarsInUse ) {
-      String varValue = pipelineMeta.getVariable( varName, "" );
+      String varValue = variables.getVariable( varName, "" );
       m_env.addVariable( varName, varValue );
     }
     // pass the transformation directory through (if defined)
-    String internalTransDir = pipelineMeta.getVariable( "Internal.Transformation.Filename.Directory" );
+    String internalTransDir = variables.getVariable( "Internal.Transformation.Filename.Directory" );
     if ( !Utils.isEmpty( internalTransDir ) ) {
       if ( internalTransDir.contains( "://" ) ) {
         internalTransDir = internalTransDir.substring( internalTransDir.indexOf( "://" ) + 3 );
@@ -481,7 +503,7 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
 
     // Reservoir sampling stuff
     if ( !Utils.isEmpty( m_wRelationName.getText() ) ) {
-      m_currentMeta.setSampleRelationName( pipelineMeta.environmentSubstitute( m_wRelationName.getText() ) );
+      m_currentMeta.setSampleRelationName( variables.resolve( m_wRelationName.getText() ) );
     }
 
     m_currentMeta.setSampleSize( m_wSampleSize.getText() );
@@ -564,7 +586,7 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
     m_wbFilename.setLayoutData( fdbFilename );
 
     // combined text field and env variable widget
-    m_wFilename = new TextVar( pipelineMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    m_wFilename = new TextVar( variables, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( m_wFilename );
     m_wFilename.addModifyListener( lsMod );
     FormData fdFilename = new FormData();
@@ -852,7 +874,7 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
     // Whenever something changes, set the tooltip to the expanded version:
     m_wFilename.addModifyListener( new ModifyListener() {
       @Override public void modifyText( ModifyEvent e ) {
-        m_wFilename.setToolTipText( pipelineMeta.environmentSubstitute( m_wFilename.getText() ) );
+        m_wFilename.setToolTipText( variables.resolve( m_wFilename.getText() ) );
       }
     } );
 
@@ -898,7 +920,7 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
 
         dialog.setFilterExtensions( extensions );
         if ( m_wFilename.getText() != null ) {
-          dialog.setFileName( pipelineMeta.environmentSubstitute( m_wFilename.getText() ) );
+          dialog.setFileName( variables.resolve( m_wFilename.getText() ) );
         }
         dialog.setFilterNames( filterNames );
 
@@ -1140,7 +1162,7 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
     colinf[2].setComboValues( new String[] { "Numeric", "Nominal", "Date", "String" } );
 
     m_wFields =
-        new TableView( pipelineMeta, wFieldsComp, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI, colinf, fieldsRows, lsMod,
+        new TableView( variables, wFieldsComp, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI, colinf, fieldsRows, lsMod,
             props );
 
     FormData fdFields = new FormData();
@@ -1181,7 +1203,7 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
     fdlRelationName.top = new FormAttachment( wGet, margin );
     wlRelationName.setLayoutData( fdlRelationName );
 
-    m_wRelationName = new TextVar( pipelineMeta, wFieldsComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    m_wRelationName = new TextVar( variables, wFieldsComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( m_wRelationName );
     m_wRelationName.addModifyListener( lsMod );
     m_wRelationName.setText( "" + m_originalMeta.getSampleRelationName() ); //$NON-NLS-1$
@@ -1202,7 +1224,7 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
     fdlSampleSize.top = new FormAttachment( m_wRelationName, margin );
     wlSampleSize.setLayoutData( fdlSampleSize );
 
-    m_wSampleSize = new TextVar( pipelineMeta, wFieldsComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    m_wSampleSize = new TextVar( variables, wFieldsComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     m_wSampleSize
         .setToolTipText( BaseMessages.getString( PMIFlowExecutorMeta.PKG, "KnowledgeFlowDialog.SampleSize.ToolTip" ) );
     props.setLook( m_wSampleSize );
@@ -1225,7 +1247,7 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
     fdlSeed.top = new FormAttachment( m_wSampleSize, margin );
     wlSeed.setLayoutData( fdlSeed );
 
-    m_wSeed = new TextVar( pipelineMeta, wFieldsComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    m_wSeed = new TextVar( variables, wFieldsComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     m_wSeed.setToolTipText( BaseMessages.getString( PMIFlowExecutorMeta.PKG, "KnowledgeFlowDialog.RandomSeed.ToolTip" ) );
     props.setLook( m_wSeed );
     m_wSeed.addModifyListener( lsMod );
@@ -1380,7 +1402,7 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
 
     if ( thisStepMeta != null ) {
       try {
-        IRowMeta row = pipelineMeta.getPrevTransformFields( thisStepMeta );
+        IRowMeta row = pipelineMeta.getPrevTransformFields( variables, thisStepMeta );
         PMIFlowExecutorData data = new PMIFlowExecutorData();
         data.setupArffMeta( row );
 
@@ -1442,11 +1464,11 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
     String filename = m_wFilename.getText();
     boolean success = false;
     try {
-      Flow loadedFlow = PMIFlowExecutorData.getFlowFromFileVFS( filename, pipelineMeta, m_env );
+      Flow loadedFlow = PMIFlowExecutorData.getFlowFromFileVFS( filename, variables, m_env );
       m_kfPerspective.getCurrentLayout().setFlow( loadedFlow );
       m_currentFlow = loadedFlow;
-      filename = pipelineMeta.environmentSubstitute( filename );
-      File flowF = PMIFlowExecutorData.pathToURI( filename, pipelineMeta );
+      filename = variables.resolve( filename );
+      File flowF = PMIFlowExecutorData.pathToURI( filename, variables );
       if ( flowF != null ) {
         m_env.addVariable( KFGUIConsts.FLOW_DIRECTORY_KEY, flowF.getParent() );
       }

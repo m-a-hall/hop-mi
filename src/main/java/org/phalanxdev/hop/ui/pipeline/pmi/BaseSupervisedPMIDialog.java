@@ -22,6 +22,7 @@ import org.apache.hop.core.exception.HopTransformException;
 import org.apache.hop.core.row.IRowMeta;
 import org.apache.hop.core.row.IValueMeta;
 import org.apache.hop.core.row.value.ValueMetaFactory;
+import org.apache.hop.core.variables.IVariables;
 import org.phalanxdev.hop.utils.ArffMeta;
 import org.apache.hop.i18n.BaseMessages;
 import org.apache.hop.pipeline.PipelineMeta;
@@ -347,10 +348,24 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     }
   };
 
-  public BaseSupervisedPMIDialog( Shell parent, Object inMeta, PipelineMeta tr, String transformName ) {
-    super( parent, (BaseTransformMeta) inMeta, tr, transformName );
+  public BaseSupervisedPMIDialog( Shell parent, IVariables variables, BaseTransformMeta baseTransformMeta,
+      PipelineMeta pMeta, String transformname ) {
+    super( parent, variables, baseTransformMeta, pMeta, transformname );
+    m_inputMeta = (BaseSupervisedPMIMeta) baseTransformMeta;
+    m_originalMeta = (BaseSupervisedPMIMeta) m_inputMeta.clone();
+  }
+
+  public BaseSupervisedPMIDialog( Shell parent, IVariables variables, Object inMeta, PipelineMeta tr,
+      String transformName ) {
+    super( parent, variables, (BaseTransformMeta) inMeta, tr, transformName );
 
     m_inputMeta = (BaseSupervisedPMIMeta) inMeta;
+    m_originalMeta = (BaseSupervisedPMIMeta) m_inputMeta.clone();
+  }
+
+  public BaseSupervisedPMIDialog( Shell parent, int nr, IVariables variables, Object in, PipelineMeta tr ) {
+    super( parent, nr, variables, (BaseTransformMeta) in, tr );
+    m_inputMeta = (BaseSupervisedPMIMeta) in;
     m_originalMeta = (BaseSupervisedPMIMeta) m_inputMeta.clone();
   }
 
@@ -717,7 +732,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     props.setLook( engineLab );
     engineLab.setLayoutData( getFirstLabelFormData() );
 
-    m_engineDropDown = new ComboVar( pipelineMeta, engGroup, SWT.BORDER | SWT.READ_ONLY );
+    m_engineDropDown = new ComboVar( variables, engGroup, SWT.BORDER | SWT.READ_ONLY );
     props.setLook( m_engineDropDown );
     m_engineDropDown.setEditable( false );
     m_engineDropDown.addSelectionListener( new SelectionAdapter() {
@@ -785,7 +800,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     fd.top = new FormAttachment( 0, MARGIN );
     rowsToProcLab.setLayoutData( fd );
 
-    m_rowsToProcessDropDown = new ComboVar( pipelineMeta, rowGroup, SWT.BORDER | SWT.READ_ONLY );
+    m_rowsToProcessDropDown = new ComboVar( variables, rowGroup, SWT.BORDER | SWT.READ_ONLY );
     props.setLook( m_rowsToProcessDropDown );
     m_rowsToProcessDropDown.setEditable( false );
     m_rowsToProcessDropDown.addSelectionListener( new SelectionAdapter() {
@@ -810,7 +825,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     rowsToProcessSizeLab.setText( BaseMessages.getString( PKG, "BasePMIStepDialog.NumberOfRowsToProcessSize.Label" ) );
     rowsToProcessSizeLab.setLayoutData( getSecondLabelFormData( m_rowsToProcessDropDown ) );
 
-    m_batchSizeField = new TextVar( pipelineMeta, rowGroup, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
+    m_batchSizeField = new TextVar( variables, rowGroup, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
     props.setLook( m_batchSizeField );
     m_batchSizeField.addModifyListener( m_simpleModifyListener );
     m_batchSizeField.setLayoutData( getSecondPromptFormData( rowsToProcessSizeLab ) );
@@ -843,7 +858,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     reservoirSamplingSizeLab.setText( BaseMessages.getString( PKG, "BasePMIStepDialog.ReservoirSamplingSize.Label" ) );
     reservoirSamplingSizeLab.setLayoutData( getSecondLabelFormData( m_reservoirSamplingBut ) );
 
-    m_reservoirSizeField = new TextVar( pipelineMeta, rowGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    m_reservoirSizeField = new TextVar( variables, rowGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( m_reservoirSizeField );
     m_reservoirSizeField
         .setToolTipText( BaseMessages.getString( PKG, "BasePMIStepDialog.ReservoirSamplingSize.TipText" ) );
@@ -861,7 +876,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     randomSeedLab.setText( BaseMessages.getString( PKG, "BasePMIStepDialog.RandomSeedReservoirSampling.Label" ) );
     randomSeedLab.setLayoutData( getFirstLabelFormData() );
 
-    m_reservoirRandomSeedField = new TextVar( pipelineMeta, rowGroup, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
+    m_reservoirRandomSeedField = new TextVar( variables, rowGroup, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
     props.setLook( m_reservoirRandomSeedField );
     m_reservoirRandomSeedField
         .setToolTipText( BaseMessages.getString( PKG, "BasePMIStepDialog.RandomSeedReservoirSampling.TipText" ) );
@@ -910,7 +925,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     fd.bottom = new FormAttachment( 100, -MARGIN * 2 );
     stratificationLab.setLayoutData( fd );
 
-    m_stratificationFieldDropDown = new ComboVar( pipelineMeta, m_fieldsComposite, SWT.BORDER | SWT.READ_ONLY );
+    m_stratificationFieldDropDown = new ComboVar( variables, m_fieldsComposite, SWT.BORDER | SWT.READ_ONLY );
     m_stratificationFieldDropDown.setEditable( true );
     props.setLook( m_stratificationFieldDropDown );
     fd = getFirstPromptFormData( stratificationLab );
@@ -929,7 +944,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     fd.bottom = new FormAttachment( m_stratificationFieldDropDown, -MARGIN );
     classLab.setLayoutData( fd );
 
-    m_classFieldDropDown = new ComboVar( pipelineMeta, m_fieldsComposite, SWT.BORDER | SWT.READ_ONLY );
+    m_classFieldDropDown = new ComboVar( variables, m_fieldsComposite, SWT.BORDER | SWT.READ_ONLY );
     m_classFieldDropDown.setEditable( true );
     props.setLook( m_classFieldDropDown );
     fd = getFirstPromptFormData( classLab );
@@ -946,7 +961,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     fd.bottom = new FormAttachment( m_classFieldDropDown, -MARGIN );
     separateTestLab.setLayoutData( fd );
 
-    m_testStepDropDown = new ComboVar( pipelineMeta, m_fieldsComposite, SWT.BORDER | SWT.READ_ONLY );
+    m_testStepDropDown = new ComboVar( variables, m_fieldsComposite, SWT.BORDER | SWT.READ_ONLY );
     props.setLook( m_testStepDropDown );
     fd = getFirstPromptFormData( separateTestLab );
     fd.top = null;
@@ -962,7 +977,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     fd.bottom = new FormAttachment( m_testStepDropDown, -MARGIN );
     trainingLab.setLayoutData( fd );
 
-    m_trainingStepDropDown = new ComboVar( pipelineMeta, m_fieldsComposite, SWT.BORDER | SWT.READ_ONLY );
+    m_trainingStepDropDown = new ComboVar( variables, m_fieldsComposite, SWT.BORDER | SWT.READ_ONLY );
     props.setLook( m_trainingStepDropDown );
     fd = getFirstPromptFormData( trainingLab );
     fd.top = null;
@@ -1024,7 +1039,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
         BaseMessages.getString( PKG, "PMIScoringDialog.attributeType.String" ) } );
 
     m_fieldsTable =
-        new TableView( pipelineMeta, m_fieldsComposite, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI, colinf, fieldsRows,
+        new TableView( variables, m_fieldsComposite, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI, colinf, fieldsRows,
             new ModifyListener() {
               @Override public void modifyText( ModifyEvent modifyEvent ) {
                 m_inputMeta.setChanged();
@@ -1091,7 +1106,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     lastControl = m_schemeGroup;
     modelOutputDirectoryLab.setLayoutData( getFirstLabelFormData() );
 
-    m_modelOutputDirectoryField = new TextVar( pipelineMeta, m_schemeComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
+    m_modelOutputDirectoryField = new TextVar( variables, m_schemeComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
     props.setLook( m_modelOutputDirectoryField );
     m_modelOutputDirectoryField.setLayoutData( getFirstPromptFormData( modelOutputDirectoryLab ) );
 
@@ -1108,7 +1123,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
 
         if ( !org.apache.hop.core.util.Utils.isEmpty( m_modelOutputDirectoryField.getText() ) ) {
           boolean ok = false;
-          String outputDir = pipelineMeta.environmentSubstitute( m_modelOutputDirectoryField.getText() );
+          String outputDir = variables.resolve( m_modelOutputDirectoryField.getText() );
           File updatedPath = null;
           if ( outputDir.toLowerCase().startsWith( "file:" ) ) {
             outputDir = outputDir.replace( " ", "%20" );
@@ -1140,7 +1155,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     props.setLook( modelOutputDirectoryLab );
     modelOutputFilenameLab.setLayoutData( getFirstLabelFormData() );
 
-    m_modelFilenameField = new TextVar( pipelineMeta, m_schemeComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
+    m_modelFilenameField = new TextVar( variables, m_schemeComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
     props.setLook( m_modelFilenameField );
     m_modelFilenameField.setLayoutData( getFirstPromptFormData( modelOutputFilenameLab ) );
 
@@ -1337,7 +1352,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
               Map<String, Object> propDetails = m_properties.get( propName );
               GOEDialog
                   dialog =
-                  new GOEDialog( shell, SWT.OK | SWT.CANCEL, propDetails.get( "objectValue" ), pipelineMeta );
+                  new GOEDialog( shell, SWT.OK | SWT.CANCEL, propDetails.get( "objectValue" ), variables );
               dialog.open();
 
               objectValueLab
@@ -1388,9 +1403,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
               arrayValEditBut.setEnabled( false );
               Object arrValue = propDetails.get( "objectValue" );
               try {
-                GAEDialog
-                    dialog =
-                    new GAEDialog( shell, SWT.OK | SWT.CANCEL, arrValue, (Class<?>) value, pipelineMeta );
+                GAEDialog dialog = new GAEDialog( shell, SWT.OK | SWT.CANCEL, arrValue, (Class<?>) value, variables );
                 dialog.open();
                 Object newArrValue = dialog.getArray();
                 propDetails.put( "objectValue", newArrValue );
@@ -1406,7 +1419,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
       } else if ( type.equalsIgnoreCase( "pick-list" ) ) {
         String pickListValues = (String) propDetails.get( "pick-list-values" );
         String[] vals = pickListValues.split( "," );
-        ComboVar pickListCombo = new ComboVar( pipelineMeta, m_schemeGroup, SWT.BORDER | SWT.READ_ONLY );
+        ComboVar pickListCombo = new ComboVar( variables, m_schemeGroup, SWT.BORDER | SWT.READ_ONLY );
         props.setLook( pickListCombo );
         for ( String v : vals ) {
           pickListCombo.add( v.trim() );
@@ -1447,7 +1460,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
         Scrollable
             propVar =
             m_scheme.supportsEnvironmentVariables() ?
-                new TextVar( pipelineMeta, m_schemeGroup, SWT.SINGLE | SWT.LEAD | SWT.BORDER ) :
+                new TextVar( variables, m_schemeGroup, SWT.SINGLE | SWT.LEAD | SWT.BORDER ) :
                 new Text( m_schemeGroup, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
         // Text propVar = new Text( m_schemeGroup, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
         props.setLook( propVar );
@@ -1485,9 +1498,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
           super.widgetSelected( selectionEvent );
           catBut.setEnabled( false );
           try {
-            GOEDialog
-                dialog =
-                new GOEDialog( shell, SWT.OK | SWT.CANCEL, m_scheme, m_topLevelSchemeInfo, pipelineMeta );
+            GOEDialog dialog = new GOEDialog( shell, SWT.OK | SWT.CANCEL, m_scheme, m_topLevelSchemeInfo, variables );
             dialog.setPropertyGroupingCategory( category );
             dialog.open();
           } catch ( Exception ex ) {
@@ -1513,7 +1524,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
       fd.top = new FormAttachment( m_modelFilenameField, MARGIN );
       incrementalCacheLab.setLayoutData( fd );
 
-      m_incrementalRowCacheField = new TextVar( pipelineMeta, m_schemeComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
+      m_incrementalRowCacheField = new TextVar( variables, m_schemeComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
       props.setLook( m_incrementalRowCacheField );
       m_incrementalRowCacheField.addModifyListener( m_simpleModifyListener );
       fd = getFirstPromptFormData( incrementalCacheLab );
@@ -1567,7 +1578,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
       fd.top = new FormAttachment( m_modelFilenameField, MARGIN );
       incrementalCacheLab.setLayoutData( fd );
 
-      m_incrementalRowCacheField = new TextVar( pipelineMeta, m_schemeComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
+      m_incrementalRowCacheField = new TextVar( variables, m_schemeComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
       props.setLook( m_incrementalRowCacheField );
       m_incrementalRowCacheField.addModifyListener( m_simpleModifyListener );
       fd = getFirstPromptFormData( incrementalCacheLab );
@@ -1751,7 +1762,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
   protected void popupEditorDialog( Object objectToEdit, Button button ) {
     try {
       button.setEnabled( false );
-      GOEDialog dialog = new GOEDialog( getParent(), SWT.OK | SWT.CANCEL, objectToEdit, pipelineMeta );
+      GOEDialog dialog = new GOEDialog( getParent(), SWT.OK | SWT.CANCEL, objectToEdit, variables );
       dialog.open();
     } catch ( Exception ex ) {
       ex.printStackTrace();
@@ -1846,7 +1857,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     lastControl = null;
     evalModeLabel.setLayoutData( getFirstLabelFormData() );
 
-    m_evalModeDropDown = new ComboVar( pipelineMeta, m_evaluationComposite, SWT.BORDER | SWT.READ_ONLY );
+    m_evalModeDropDown = new ComboVar( variables, m_evaluationComposite, SWT.BORDER | SWT.READ_ONLY );
     props.setLook( m_evalModeDropDown );
 
     m_evalModeDropDown.setLayoutData( getFirstPromptFormData( evalModeLabel ) );
@@ -1864,7 +1875,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     crossValLabel.setLayoutData( getFirstLabelFormData() );
     crossValLabel.setToolTipText( BaseMessages.getString( PKG, "BasePMIStepDialog.CrossValFolds.TipText" ) );
 
-    m_xValFoldsField = new TextVar( pipelineMeta, m_evaluationComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
+    m_xValFoldsField = new TextVar( variables, m_evaluationComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
     props.setLook( m_xValFoldsField );
     m_xValFoldsField.setLayoutData( getFirstPromptFormData( crossValLabel ) );
     lastControl = m_xValFoldsField;
@@ -1875,7 +1886,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     percentageSplitLabel.setToolTipText( BaseMessages.getString( PKG, "BasePMIStepDialog.PercentageSplit.TipText" ) );
     percentageSplitLabel.setLayoutData( getFirstLabelFormData() );
 
-    m_percentageSplitField = new TextVar( pipelineMeta, m_evaluationComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
+    m_percentageSplitField = new TextVar( variables, m_evaluationComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
     props.setLook( m_percentageSplitField );
     m_percentageSplitField.setLayoutData( getFirstPromptFormData( percentageSplitLabel ) );
     lastControl = m_percentageSplitField;
@@ -1886,7 +1897,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     randomSeedLab.setToolTipText( BaseMessages.getString( PKG, "BasePMIStepDialog.RandomSeed.TipText" ) );
     randomSeedLab.setLayoutData( getFirstLabelFormData() );
 
-    m_randomSeedField = new TextVar( pipelineMeta, m_evaluationComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
+    m_randomSeedField = new TextVar( variables, m_evaluationComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
     props.setLook( m_randomSeedField );
     m_randomSeedField.setLayoutData( getFirstPromptFormData( randomSeedLab ) );
     lastControl = m_randomSeedField;
@@ -2001,7 +2012,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
         lastControl = m_modelFilenameField;
         m_modelLoadLab.setLayoutData( getFirstLabelFormData() );
 
-        m_modelLoadField = new TextVar( pipelineMeta, m_schemeComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
+        m_modelLoadField = new TextVar( variables, m_schemeComposite, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
         props.setLook( m_modelLoadField );
         m_modelLoadField.setLayoutData( getFirstPromptFormData( m_modelLoadLab ) );
 
@@ -2073,14 +2084,14 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
   protected boolean checkAUCIRWidgets() {
     boolean enableCheckBoxes = false;
     if ( !org.apache.hop.core.util.Utils.isEmpty( m_classFieldDropDown.getText() ) ) {
-      String classFieldName = pipelineMeta.environmentSubstitute( m_classFieldDropDown.getText() );
+      String classFieldName = variables.resolve( m_classFieldDropDown.getText() );
 
       int numNonEmpty = m_fieldsTable.nrNonEmpty();
       for ( int i = 0; i < numNonEmpty; i++ ) {
         TableItem item = m_fieldsTable.getNonEmpty( i );
 
         String fieldName = item.getText( 1 );
-        if ( pipelineMeta.environmentSubstitute( fieldName ).equals( classFieldName ) ) {
+        if ( variables.resolve( fieldName ).equals( classFieldName ) ) {
           int arffType = getArffTypeInt( item.getText( 3 ) );
           if ( arffType == Attribute.NOMINAL ) {
             String nomVals = item.getText( 4 );
@@ -2165,7 +2176,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     List<TransformMeta> connected = pipelineMeta.findPreviousTransforms( us );
     TransformMeta trainingStep = null;
     for ( TransformMeta conn : connected ) {
-      if ( conn.getName().equalsIgnoreCase( pipelineMeta.environmentSubstitute( m_trainingStepDropDown.getText() ) ) ) {
+      if ( conn.getName().equalsIgnoreCase( variables.resolve( m_trainingStepDropDown.getText() ) ) ) {
         trainingStep = conn;
         break;
       }
@@ -2175,7 +2186,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
       // TODO popup warning/error
     }
 
-    return pipelineMeta.getTransformFields( trainingStep, us, null );
+    return pipelineMeta.getTransformFields( variables, us, null );
   }
 
   protected void populateClassAndStratCombos() {

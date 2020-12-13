@@ -21,6 +21,7 @@ import org.apache.hop.core.Props;
 import org.apache.hop.core.exception.HopException;
 import org.apache.hop.core.row.IRowMeta;
 import org.apache.hop.core.row.IValueMeta;
+import org.apache.hop.core.variables.IVariables;
 import org.apache.hop.i18n.BaseMessages;
 import org.apache.hop.pipeline.PipelineMeta;
 import org.apache.hop.pipeline.transform.BaseTransformMeta;
@@ -135,12 +136,27 @@ public class PMIForecastingDialog extends BaseTransformDialog implements ITransf
   private final PMIForecastingMeta m_currentMeta;
   private final PMIForecastingMeta m_originalMeta;
 
-  public PMIForecastingDialog( Shell parent, Object in, PipelineMeta tr, String sname ) {
+  public PMIForecastingDialog( Shell parent, IVariables variables, BaseTransformMeta baseTransformMeta,
+      PipelineMeta pipelineMeta, String transformname ) {
+    super( parent, variables, baseTransformMeta, pipelineMeta, transformname );
 
-    super( parent, (BaseTransformMeta) in, tr, sname );
+    m_currentMeta = (PMIForecastingMeta) baseTransformMeta;
+    m_originalMeta = (PMIForecastingMeta) m_currentMeta.clone();
+  }
+
+  public PMIForecastingDialog( Shell parent, IVariables variables, Object in, PipelineMeta tr, String sname ) {
+
+    super( parent, variables, (BaseTransformMeta) in, tr, sname );
 
     // The order here is important...
     // m_currentMeta is looked at for changes
+    m_currentMeta = (PMIForecastingMeta) in;
+    m_originalMeta = (PMIForecastingMeta) m_currentMeta.clone();
+  }
+
+  public PMIForecastingDialog( Shell parent, int nr, IVariables variables, Object in, PipelineMeta tr ) {
+    super( parent, nr, variables, (BaseTransformMeta) in, tr );
+    
     m_currentMeta = (PMIForecastingMeta) in;
     m_originalMeta = (PMIForecastingMeta) m_currentMeta.clone();
   }
@@ -236,7 +252,7 @@ public class PMIForecastingDialog extends BaseTransformDialog implements ITransf
     m_wbFilename.setLayoutData( m_fdbFilename );
 
     // combined text field and env variable widget
-    m_wFilename = new TextVar( pipelineMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    m_wFilename = new TextVar( variables, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( m_wFilename );
     m_wFilename.addModifyListener( lsMod );
     m_fdFilename = new FormData();
@@ -255,7 +271,7 @@ public class PMIForecastingDialog extends BaseTransformDialog implements ITransf
     fmd.top = new FormAttachment( m_wFilename, margin );
     m_numStepsLab.setLayoutData( fmd );
 
-    m_numStepsText = new TextVar( pipelineMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    m_numStepsText = new TextVar( variables, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     m_numStepsText
         .setToolTipText( BaseMessages.getString( PMIForecastingMeta.PKG, "PMIForecastingDialog.NumSteps.ToolTip" ) );
     m_numStepsLab
@@ -281,7 +297,7 @@ public class PMIForecastingDialog extends BaseTransformDialog implements ITransf
     fmd.top = new FormAttachment( m_numStepsText, margin );
     m_artificialTimeOffsetLab.setLayoutData( fmd );
 
-    m_artificialTimeOffsetText = new TextVar( pipelineMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    m_artificialTimeOffsetText = new TextVar( variables, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     m_artificialTimeOffsetText.setToolTipText(
         BaseMessages.getString( PMIForecastingMeta.PKG, "PMIForecastingDialog.ArtificialTimeOffset.ToolTip" ) );
     m_artificialTimeOffsetLab.setToolTipText(
@@ -335,7 +351,7 @@ public class PMIForecastingDialog extends BaseTransformDialog implements ITransf
     m_saveForecasterBut.setLayoutData( fmd );
 
     // combined text field and env variable widget
-    m_saveForecasterField = new TextVar( pipelineMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    m_saveForecasterField = new TextVar( variables, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( m_saveForecasterField );
     m_saveForecasterField.addModifyListener( lsMod );
     fmd = new FormData();
@@ -506,7 +522,7 @@ public class PMIForecastingDialog extends BaseTransformDialog implements ITransf
     // Whenever something changes, set the tooltip to the expanded version:
     m_wFilename.addModifyListener( new ModifyListener() {
       @Override public void modifyText( ModifyEvent e ) {
-        m_wFilename.setToolTipText( pipelineMeta.environmentSubstitute( m_wFilename.getText() ) );
+        m_wFilename.setToolTipText( variables.resolve( m_wFilename.getText() ) );
       }
     } );
 
@@ -541,7 +557,7 @@ public class PMIForecastingDialog extends BaseTransformDialog implements ITransf
         dialog.setFilterExtensions( extensions );
 
         if ( m_saveForecasterField.getText() != null ) {
-          dialog.setFileName( pipelineMeta.environmentSubstitute( m_saveForecasterField.getText() ) );
+          dialog.setFileName( variables.resolve( m_saveForecasterField.getText() ) );
         }
         dialog.setFilterNames( filterNames );
 
@@ -568,7 +584,7 @@ public class PMIForecastingDialog extends BaseTransformDialog implements ITransf
 
         dialog.setFilterExtensions( extensions );
         if ( m_wFilename.getText() != null ) {
-          dialog.setFileName( pipelineMeta.environmentSubstitute( m_wFilename.getText() ) );
+          dialog.setFileName( variables.resolve( m_wFilename.getText() ) );
         }
         dialog.setFilterNames( filterNames );
 
@@ -626,7 +642,7 @@ public class PMIForecastingDialog extends BaseTransformDialog implements ITransf
     if ( org.apache.hop.core.util.Utils.isEmpty( filename ) ) {
       return false;
     }
-    String modName = pipelineMeta.environmentSubstitute( filename );
+    String modName = variables.resolve( filename );
     File modelFile = null;
     if ( modName.startsWith( "file:" ) ) {
       try {
@@ -678,7 +694,7 @@ public class PMIForecastingDialog extends BaseTransformDialog implements ITransf
     try {
       TransformMeta stepMeta = pipelineMeta.findTransform( transformName );
       if ( stepMeta != null ) {
-        IRowMeta rowM = pipelineMeta.getPrevTransformFields( stepMeta );
+        IRowMeta rowM = pipelineMeta.getPrevTransformFields( variables, stepMeta );
         Instances header = model.getHeader();
         m_currentMeta.mapIncomingRowMetaData( header, rowM );
         int[] mappings = m_currentMeta.getMappingIndexes();

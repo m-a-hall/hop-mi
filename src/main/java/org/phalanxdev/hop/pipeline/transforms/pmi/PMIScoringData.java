@@ -275,12 +275,12 @@ public class PMIScoringData extends BaseTransformData implements ITransformData 
     Evaluation classPriorEval = null;
     int[] ignoredAttsForClustering = null;
 
-    modelFile = space.environmentSubstitute(modelFile);
+    modelFile = space.resolve(modelFile);
     FileObject modelF = HopVfs.getFileObject(modelFile);
     if (!modelF.exists()) {
       throw new Exception(
           BaseMessages.getString(PMIScoringMeta.PKG, "PMIScoring.Error.NonExistentModelFile",
-              space.environmentSubstitute(modelFile)));
+              space.resolve(modelFile)));
     }
 
     InputStream is = HopVfs.getInputStream(modelF);
@@ -786,7 +786,7 @@ public class PMIScoringData extends BaseTransformData implements ITransformData 
 
   public static boolean modelFileExists(String modelFile, IVariables space) throws Exception {
 
-    modelFile = space.environmentSubstitute(modelFile);
+    modelFile = space.resolve(modelFile);
     FileObject modelF = HopVfs.getFileObject(modelFile);
 
     return modelF.exists();

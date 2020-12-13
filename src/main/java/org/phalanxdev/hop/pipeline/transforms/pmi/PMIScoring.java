@@ -100,7 +100,7 @@ public class PMIScoring extends BaseTransform<PMIScoringMeta, PMIScoringData> im
       return;
     }
 
-    String resolvedName = environmentSubstitute( modelFileName );
+    String resolvedName = resolve( modelFileName );
 
     if ( resolvedName.equals( m_lastRowModelFile ) ) {
       // nothing to do, just return
@@ -121,7 +121,7 @@ public class PMIScoring extends BaseTransform<PMIScoringMeta, PMIScoringData> im
     // load the model
     logDebug(
         BaseMessages.getString( PMIScoringMeta.PKG, "PMIScoring.Debug.LoadingModelUsingFieldValue" ) + " " //$NON-NLS-1$
-            + environmentSubstitute( modelFileName ) );
+            + resolve( modelFileName ) );
     PMIScoringModel modelToUse = setModel( modelFileName );
 
     if ( m_meta.getCacheLoadedModels() ) {
@@ -138,7 +138,7 @@ public class PMIScoring extends BaseTransform<PMIScoringMeta, PMIScoringData> im
       m_data.setModel( model );
 
       if ( m_meta.getFileNameFromField() ) {
-        m_lastRowModelFile = environmentSubstitute( modelFileName );
+        m_lastRowModelFile = resolve( modelFileName );
       }
     } catch ( Exception ex ) {
       throw new HopException(
@@ -263,12 +263,12 @@ public class PMIScoring extends BaseTransform<PMIScoringMeta, PMIScoringData> im
 
       if ( !org.apache.hop.core.util.Utils.isEmpty( m_meta.getBatchScoringSize() ) && m_meta.getModel().isBatchPredictor() ) {
         try {
-          String bss = environmentSubstitute( m_meta.getBatchScoringSize() );
+          String bss = resolve( m_meta.getBatchScoringSize() );
           m_batchScoringSize = Integer.parseInt( bss );
         } catch ( NumberFormatException ex ) {
           String
               modelPreferred =
-              environmentSubstitute( ( (BatchPredictor) m_meta.getModel().getModel() ).getBatchSize() );
+              resolve( ( (BatchPredictor) m_meta.getModel().getModel() ).getBatchSize() );
 
           boolean sizeOk = false;
           if ( !org.apache.hop.core.util.Utils.isEmpty( modelPreferred ) ) {
@@ -332,7 +332,7 @@ public class PMIScoring extends BaseTransform<PMIScoringMeta, PMIScoringData> im
         if ( !org.apache.hop.core.util.Utils.isEmpty( m_meta.getSavedModelFileName() ) ) {
           // try and save that sucker...
           try {
-            String modName = environmentSubstitute( m_meta.getSavedModelFileName() );
+            String modName = resolve( m_meta.getSavedModelFileName() );
             File updatedModelFile = null;
             if ( modName.startsWith( "file:" ) ) {
               try {

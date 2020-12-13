@@ -137,8 +137,8 @@ public class SupervisedEvaluatorMeta extends BaseTransformMeta implements
       IVariables space, IHopMetadataProvider metadataProvider ) throws HopTransformException {
 
     if ( rowMeta != null && rowMeta.size() > 0 && !org.apache.hop.core.util.Utils.isEmpty( getClassName() ) ) {
-      // String nominalVals = space.environmentSubstitute( getNominalLabelList() );
-      String className = space.environmentSubstitute( getClassName() );
+      // String nominalVals = space.resolve( getNominalLabelList() );
+      String className = space.resolve( getClassName() );
       try {
         // GeneralSupervisedEvaluatorUtil eval = new GeneralSupervisedEvaluatorUtil( rowMeta, className, nominalVals );
         // trans.getPrevStepFiel;

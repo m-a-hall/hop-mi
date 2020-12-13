@@ -614,7 +614,7 @@ public class PMIFlowExecutorMeta extends BaseTransformMeta implements
           PMIFlowExecutorData
               .validateOutputStep( flow, getOutputStepName(), getOutputConnectionName(), null, space, getLog() );
 
-      String outputConnectionName = space.environmentSubstitute( getOutputConnectionName() );
+      String outputConnectionName = space.resolve( getOutputConnectionName() );
       Instances outputStructure = null;
       try {
         outputStructure = outputStep.getManagedStep().outputStructureForConnectionType( outputConnectionName );

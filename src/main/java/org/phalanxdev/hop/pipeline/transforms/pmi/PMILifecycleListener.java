@@ -20,6 +20,7 @@ import org.apache.hop.core.extension.ExtensionPoint;
 import org.apache.hop.core.extension.IExtensionPoint;
 import org.apache.hop.core.logging.ILogChannel;
 import org.apache.hop.core.plugins.PluginRegistry;
+import org.apache.hop.core.variables.IVariables;
 import org.phalanxdev.mi.MIEnvironmentInit;
 
 /**
@@ -33,7 +34,7 @@ public class PMILifecycleListener
     implements IExtensionPoint<PluginRegistry> {
 
   @Override
-  public void callExtensionPoint(ILogChannel iLogChannel, PluginRegistry pluginRegistry)
+  public void callExtensionPoint(ILogChannel iLogChannel, IVariables variables, PluginRegistry pluginRegistry)
       throws HopException {
     iLogChannel.logBasic("Checking and loading packages for Hop machine intelligence.");
 

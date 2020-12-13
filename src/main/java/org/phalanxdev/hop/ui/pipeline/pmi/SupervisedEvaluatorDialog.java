@@ -19,6 +19,7 @@ import org.apache.hop.core.Const;
 import org.apache.hop.core.exception.HopTransformException;
 import org.apache.hop.core.row.IRowMeta;
 import org.apache.hop.core.row.IValueMeta;
+import org.apache.hop.core.variables.IVariables;
 import org.apache.hop.i18n.BaseMessages;
 import org.apache.hop.pipeline.PipelineMeta;
 import org.apache.hop.pipeline.transform.BaseTransformMeta;
@@ -94,10 +95,25 @@ public class SupervisedEvaluatorDialog extends BaseTransformDialog implements IT
     }
   };
 
-  public SupervisedEvaluatorDialog( Shell parent, Object inMeta, PipelineMeta tr, String stepName ) {
-    super( parent, (BaseTransformMeta) inMeta, tr, stepName );
+  public SupervisedEvaluatorDialog( Shell parent, IVariables variables, BaseTransformMeta baseTransformMeta,
+      PipelineMeta pipelineMeta, String transformname ) {
+    super( parent, variables, baseTransformMeta, pipelineMeta, transformname );
+
+    m_inputMeta = (SupervisedEvaluatorMeta) baseTransformMeta;
+    m_originalMeta = (SupervisedEvaluatorMeta) m_inputMeta.clone();
+  }
+
+  public SupervisedEvaluatorDialog( Shell parent, IVariables variables, Object inMeta, PipelineMeta tr, String stepName ) {
+    super( parent, variables, (BaseTransformMeta) inMeta, tr, stepName );
 
     m_inputMeta = (SupervisedEvaluatorMeta) inMeta;
+    m_originalMeta = (SupervisedEvaluatorMeta) m_inputMeta.clone();
+  }
+
+  public SupervisedEvaluatorDialog( Shell parent, int nr, IVariables variables, Object in, PipelineMeta tr ) {
+    super( parent, nr, variables, (BaseTransformMeta) in, tr );
+
+    m_inputMeta = (SupervisedEvaluatorMeta) in;
     m_originalMeta = (SupervisedEvaluatorMeta) m_inputMeta.clone();
   }
 
@@ -110,7 +126,7 @@ public class SupervisedEvaluatorDialog extends BaseTransformDialog implements IT
     classDropDownLab.setText( BaseMessages.getString( PKG, "SupervisedEvaluator.ClassDropDown.Label" ) );
     classDropDownLab.setLayoutData( getFirstLabelFormData() );
 
-    m_classDropDown = new ComboVar( pipelineMeta, shell, SWT.BORDER | SWT.READ_ONLY );
+    m_classDropDown = new ComboVar( variables, shell, SWT.BORDER | SWT.READ_ONLY );
     props.setLook( m_classDropDown );
     m_classDropDown.setEditable( true );
     m_classDropDown.addSelectionListener( m_simpleSelectionListener );
@@ -264,7 +280,7 @@ public class SupervisedEvaluatorDialog extends BaseTransformDialog implements IT
   }
 
   protected void populateClassDropDown() throws HopTransformException {
-    IRowMeta rowMeta = pipelineMeta.getPrevTransformFields( transformName );
+    IRowMeta rowMeta = pipelineMeta.getPrevTransformFields( variables, transformName );
     String existingC = m_classDropDown.getText();
     m_classDropDown.removeAll();
     if ( rowMeta != null ) {

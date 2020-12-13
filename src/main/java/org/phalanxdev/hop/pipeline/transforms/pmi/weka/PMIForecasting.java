@@ -87,7 +87,7 @@ public class PMIForecasting extends BaseTransform<PMIForecastingMeta, PMIForecas
   private PMIForecastingMeta m_meta;
   private PMIForecastingData m_data;
 
-  private final PipelineMeta m_transMeta;
+  private final PipelineMeta m_pipelineMeta;
 
   private final LogAdapter m_log;
 
@@ -98,20 +98,20 @@ public class PMIForecasting extends BaseTransform<PMIForecastingMeta, PMIForecas
    * @param meta
    * @param data holds the step's temporary data
    * @param copyNr            the number assigned to the step
-   * @param transMeta         meta data for the transformation
+   * @param pipelineMeta         meta data for the transformation
    * @param trans             a <code>Trans</code> value
    */
-  public PMIForecasting( TransformMeta transformMeta, PMIForecastingMeta meta, PMIForecastingData data, int copyNr, PipelineMeta transMeta,
+  public PMIForecasting( TransformMeta transformMeta, PMIForecastingMeta meta, PMIForecastingData data, int copyNr, PipelineMeta pipelineMeta,
       Pipeline trans ) {
-    super( transformMeta, meta, data, copyNr, transMeta, trans );
-    m_transMeta = transMeta;
+    super( transformMeta, meta, data, copyNr, pipelineMeta, trans );
+    this.m_pipelineMeta = pipelineMeta;
     m_log = new LogAdapter( getLogChannel() );
     m_meta = meta;
     m_data = data;
   }
 
   private WekaForecastingModel setModel( String modelFileName ) throws HopException {
-    String modName = m_transMeta.environmentSubstitute( modelFileName );
+    String modName = resolve( modelFileName );
     File modelFile = null;
     if ( modName.startsWith( "file:" ) ) {
       try {
@@ -216,8 +216,8 @@ public class PMIForecasting extends BaseTransform<PMIForecastingMeta, PMIForecas
         logBasic( "Generating forecast..." );
         List<Object[]>
             outputForecast =
-            m_data.generateForecast( getInputRowMeta(), m_data.getOutputRowMeta(), m_meta, m_overlayData, m_transMeta,
-                m_log );
+            m_data.generateForecast( getInputRowMeta(), m_data.getOutputRowMeta(), m_meta, m_overlayData,
+                variables, m_log );
 
         for ( int i = 0; i < outputForecast.size(); i++ ) {
           putRow( m_data.getOutputRowMeta(), outputForecast.get( i ) );
@@ -230,7 +230,7 @@ public class PMIForecasting extends BaseTransform<PMIForecastingMeta, PMIForecas
       // save the forecaster out to a file if requested
       if ( m_rebuildModel && !org.apache.hop.core.util.Utils.isEmpty( m_meta.getSavedForecasterFileName() ) ) {
         try {
-          String modName = m_transMeta.environmentSubstitute( m_meta.getSavedForecasterFileName() );
+          String modName = resolve( m_meta.getSavedForecasterFileName() );
 
           File updatedModelFile = null;
           if ( modName.startsWith( "file:" ) ) {

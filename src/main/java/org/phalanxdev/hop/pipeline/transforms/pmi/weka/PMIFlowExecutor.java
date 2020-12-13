@@ -85,12 +85,12 @@ public class PMIFlowExecutor extends BaseTransform<PMIFlowExecutorMeta, PMIFlowE
     m_meta = meta;
     m_data = data;
 
-    String internalTransDir = pipelineMeta.getVariable( "Internal.Transformation.Filename.Directory" );
+    String internalTransDir = getVariable( "Internal.Transformation.Filename.Directory" );
     m_env = new Environment();
 
     if ( !org.apache.hop.core.util.Utils.isEmpty( internalTransDir ) ) {
       try {
-        File temp = PMIFlowExecutorData.pathToURI( internalTransDir, pipelineMeta );
+        File temp = PMIFlowExecutorData.pathToURI( internalTransDir, variables );
         internalTransDir = temp.getAbsolutePath();
       } catch ( Exception ex ) {
         //        logError( BaseMessages.getString( KFMeta.PKG, "KF.Message.Error.MalformedURI" ) ); //$NON-NLS-1$
@@ -103,7 +103,7 @@ public class PMIFlowExecutor extends BaseTransform<PMIFlowExecutorMeta, PMIFlowE
     List<String> transVarsInUse = pipelineMeta.getUsedVariables();
     for ( String varName : transVarsInUse ) {
       if ( !varName.equals( "Internal.Transformation.Filename.Directory" ) ) {
-        String varValue = pipelineMeta.getVariable( varName, "" );
+        String varValue = getVariable( varName, "" );
         m_env.addVariable( varName, varValue );
       }
     }
@@ -266,7 +266,7 @@ public class PMIFlowExecutor extends BaseTransform<PMIFlowExecutorMeta, PMIFlowE
 
         if ( m_listeningForOutputFromKF ) {
           logBasic( BaseMessages.getString( PMIFlowExecutorMeta.PKG, "KnowledgeFlow.Info.ReceivingDataFromKFStep",
-              environmentSubstitute( m_meta.getOutputStepName() ) ) );
+              resolve( m_meta.getOutputStepName() ) ) );
         }
 
         // Validate input and output steps (as necessary)
@@ -276,7 +276,7 @@ public class PMIFlowExecutor extends BaseTransform<PMIFlowExecutorMeta, PMIFlowE
                   this );
 
           if ( m_meta.getSetClass() ) {
-            m_data.setClassAttributeName( environmentSubstitute( m_meta.getClassAttributeName() ) );
+            m_data.setClassAttributeName( resolve( m_meta.getClassAttributeName() ) );
           }
 
           m_data.setInjectFields( m_meta.getInjectFields() );
@@ -295,12 +295,12 @@ public class PMIFlowExecutor extends BaseTransform<PMIFlowExecutorMeta, PMIFlowE
           if ( !m_meta.getStreamData() ) {
             logBasic( BaseMessages.getString( PMIFlowExecutorMeta.PKG, "KnowledgeFlow.Info.InitializingReservoir" ) );
           } else {
-            m_data.setSampleRelationName( environmentSubstitute( m_meta.getSampleRelationName() ) );
+            m_data.setSampleRelationName( resolve( m_meta.getSampleRelationName() ) );
           }
 
           try {
-            m_data.initializeReservoir( Integer.parseInt( environmentSubstitute( m_meta.getSampleSize() ) ),
-                Integer.parseInt( environmentSubstitute( m_meta.getRandomSeed() ) ) );
+            m_data.initializeReservoir( Integer.parseInt( resolve( m_meta.getSampleSize() ) ),
+                Integer.parseInt( resolve( m_meta.getRandomSeed() ) ) );
           } catch ( NumberFormatException ex ) {
             throw new HopException( ex );
           }
@@ -308,7 +308,7 @@ public class PMIFlowExecutor extends BaseTransform<PMIFlowExecutorMeta, PMIFlowE
           if ( m_data.getBufferingForStreaming() ) {
             logBasic( BaseMessages.getString( PMIFlowExecutorMeta.PKG,
                 "KnowledgeFlow.Info.BufferingRowsToDetermineValuesForNominalFields",
-                environmentSubstitute( m_meta.getSampleSize() ) ) );
+                resolve( m_meta.getSampleSize() ) ) );
           }
         }
 

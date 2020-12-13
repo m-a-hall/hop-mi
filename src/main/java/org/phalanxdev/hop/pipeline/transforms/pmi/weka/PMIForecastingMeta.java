@@ -511,7 +511,7 @@ public class PMIForecastingMeta extends BaseTransformMeta
       // see if we can load from a file.
 
       String modName = getSerializedModelFileName();
-      modName = space.environmentSubstitute( modName );
+      modName = space.resolve( modName );
       File modelFile = null;
       if ( modName.startsWith( "file:" ) ) {
         try {

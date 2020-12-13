@@ -21,6 +21,7 @@ import org.apache.hop.core.Props;
 import org.apache.hop.core.exception.HopTransformException;
 import org.apache.hop.core.row.IRowMeta;
 import org.apache.hop.core.row.IValueMeta;
+import org.apache.hop.core.variables.IVariables;
 import org.apache.hop.core.vfs.HopVfs;
 import org.apache.hop.i18n.BaseMessages;
 import org.apache.hop.pipeline.PipelineMeta;
@@ -167,11 +168,26 @@ public class PMIScoringDialog extends BaseTransformDialog implements ITransformD
    */
   private final PMIScoringMeta m_inputMeta;
   private final PMIScoringMeta m_originalMeta;
+  
+  public PMIScoringDialog( Shell parent, IVariables variables, BaseTransformMeta baseTransformMeta,
+      PipelineMeta pipelineMeta, String transformname ) {
+    super( parent, variables, baseTransformMeta, pipelineMeta, transformname );
 
-  public PMIScoringDialog( Shell parent, Object inMeta, PipelineMeta tr, String stepName ) {
-    super( parent, (BaseTransformMeta) inMeta, tr, stepName );
+    m_inputMeta = (PMIScoringMeta) baseTransformMeta;
+    m_originalMeta = (PMIScoringMeta) m_inputMeta.clone();
+  }
+
+  public PMIScoringDialog( Shell parent, IVariables variables, Object inMeta, PipelineMeta tr, String stepName ) {
+    super( parent, variables, (BaseTransformMeta) inMeta, tr, stepName );
 
     m_inputMeta = (PMIScoringMeta) inMeta;
+    m_originalMeta = (PMIScoringMeta) m_inputMeta.clone();
+  }
+  
+  public PMIScoringDialog( Shell parent, int nr, IVariables variables, Object in, PipelineMeta tr ) {
+    super( parent, nr, variables, (BaseTransformMeta) in, tr );
+
+    m_inputMeta = (PMIScoringMeta) in;
     m_originalMeta = (PMIScoringMeta) m_inputMeta.clone();
   }
 
@@ -324,7 +340,7 @@ public class PMIScoringDialog extends BaseTransformDialog implements ITransformD
 
         try {
           if ( m_wFilename.getText() != null ) {
-            String fname = pipelineMeta.environmentSubstitute( m_wFilename.getText() );
+            String fname = variables.resolve( m_wFilename.getText() );
 
             if ( !org.apache.hop.core.util.Utils.isEmpty( fname ) ) {
               initialFile = HopVfs.getFileObject( fname );
@@ -398,7 +414,7 @@ public class PMIScoringDialog extends BaseTransformDialog implements ITransformD
         dialog.setFilterExtensions( extensions );
         dialog.setFilterNames( filterNames );
         if ( m_wSaveFilename.getText() != null ) {
-          dialog.setFileName( pipelineMeta.environmentSubstitute( m_wSaveFilename.getText() ) );
+          dialog.setFileName( variables.resolve( m_wSaveFilename.getText() ) );
         }
 
         if ( dialog.open() != null ) {
@@ -684,7 +700,7 @@ public class PMIScoringDialog extends BaseTransformDialog implements ITransformD
     m_wbFilename.setLayoutData( fd );
 
     // combined text field and env variable widget
-    m_wFilename = new TextVar( pipelineMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    m_wFilename = new TextVar( variables, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( m_wFilename );
     m_wFilename.addModifyListener( lsMod );
     fd = new FormData();
@@ -757,7 +773,7 @@ public class PMIScoringDialog extends BaseTransformDialog implements ITransformD
     m_wbSaveFilename.setEnabled( false );
 
     // combined text field and env variable widget
-    m_wSaveFilename = new TextVar( pipelineMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    m_wSaveFilename = new TextVar( variables, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( m_wSaveFilename );
     m_wSaveFilename.addModifyListener( lsMod );
     fd = new FormData();
@@ -836,7 +852,7 @@ public class PMIScoringDialog extends BaseTransformDialog implements ITransformD
     fd.top = new FormAttachment( m_wAcceptFileNameFromFieldCheckBox, margin );
     fd.right = new FormAttachment( middle, -margin );
     acceptFileNameFromFieldLab.setLayoutData( fd );
-    m_wAcceptFileNameFromFieldText = new TextVar( pipelineMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    m_wAcceptFileNameFromFieldText = new TextVar( variables, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( m_wAcceptFileNameFromFieldText );
     m_wAcceptFileNameFromFieldText.addModifyListener( lsMod );
     FormData fdAcceptText = new FormData();
@@ -890,7 +906,7 @@ public class PMIScoringDialog extends BaseTransformDialog implements ITransformD
     fdd.right = new FormAttachment( middle, -margin );
     batchLab.setLayoutData( fdd );
 
-    m_batchScoringBatchSizeText = new TextVar( pipelineMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    m_batchScoringBatchSizeText = new TextVar( variables, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( m_batchScoringBatchSizeText );
     m_batchScoringBatchSizeText.addModifyListener( lsMod );
     fdd = new FormData();
@@ -1000,9 +1016,9 @@ public class PMIScoringDialog extends BaseTransformDialog implements ITransformD
 
     boolean success = false;
     try {
-      if ( PMIScoringData.modelFileExists( filename, pipelineMeta ) ) {
+      if ( PMIScoringData.modelFileExists( filename, variables ) ) {
 
-        PMIScoringModel tempM = PMIScoringData.loadSerializedModel( filename, log, pipelineMeta );
+        PMIScoringModel tempM = PMIScoringData.loadSerializedModel( filename, log, variables );
         m_wModelText.setText( tempM.toString() );
 
         if ( m_wAcceptFileNameFromFieldCheckBox.getSelection() ) {
@@ -1115,7 +1131,7 @@ public class PMIScoringDialog extends BaseTransformDialog implements ITransformD
     try {
       TransformMeta stepMetaTemp = pipelineMeta.findTransform( transformName );
       if ( stepMetaTemp != null ) {
-        IRowMeta rowM = pipelineMeta.getPrevTransformFields( stepMetaTemp );
+        IRowMeta rowM = pipelineMeta.getPrevTransformFields( variables, stepMetaTemp );
         Instances header = model.getHeader();
         int[] mappings = PMIScoringData.findMappings( header, rowM );
 

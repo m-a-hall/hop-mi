@@ -81,7 +81,7 @@ public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, Base
         }
 
         // check engine availability
-        String engineName = environmentSubstitute( m_meta.getEngineName() );
+        String engineName = resolve( m_meta.getEngineName() );
         PMIEngine.init();
         m_data.m_engine = PMIEngine.getEngine( engineName );
 
@@ -97,7 +97,7 @@ public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, Base
           throw new HopException( b.toString() );
         }
 
-        m_data.m_scheme = m_data.m_engine.getScheme( environmentSubstitute( m_meta.getSchemeName() ) );
+        m_data.m_scheme = m_data.m_engine.getScheme( resolve( m_meta.getSchemeName() ) );
         if ( !org.apache.hop.core.util.Utils.isEmpty( m_meta.getSchemeCommandLineOptions() ) ) {
           m_data.m_scheme.setSchemeOptions( Utils.splitOptions( m_meta.getSchemeCommandLineOptions() ) );
         }
@@ -105,7 +105,7 @@ public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, Base
         m_data.m_scheme.setSamplingConfigs( m_meta.getSamplingConfigs() );
         m_data.m_scheme.setPreprocessingConfigs( m_meta.getPreprocessingConfigs() );
 
-        String rowHandlingMode = environmentSubstitute( m_meta.getRowsToProcess() );
+        String rowHandlingMode = resolve( m_meta.getRowsToProcess() );
         for ( BaseSupervisedPMIData.RowHandlingMode m : BaseSupervisedPMIData.RowHandlingMode.values() ) {
           if ( m.toString().equalsIgnoreCase( rowHandlingMode ) ) {
             m_data.m_rowHandlingMode = m;
@@ -126,7 +126,7 @@ public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, Base
         if ( infoStreams.size() == 0 ) {
           throw new HopException( BaseMessages.getString( PKG, "BasePMIStep.Error.NoIncomingData" ) );
         }
-        String trainingInputStepName = environmentSubstitute( m_meta.getTrainingStepInputName() );
+        String trainingInputStepName = resolve( m_meta.getTrainingStepInputName() );
         if ( infoStreams.size() > 1 ) {
           // check that there is a training stream named
           if ( org.apache.hop.core.util.Utils.isEmpty( m_meta.getTrainingStepInputName() ) ) {
@@ -135,7 +135,7 @@ public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, Base
 
           boolean trainingMatch = false;
           for ( IStream input : infoStreams ) {
-            if ( environmentSubstitute( input.getSubject().toString() ).equals( trainingInputStepName ) ) {
+            if ( resolve( input.getSubject().toString() ).equals( trainingInputStepName ) ) {
               trainingMatch = true;
               m_data.m_trainingStream = input;
               break;
@@ -149,10 +149,10 @@ public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, Base
           if ( !org.apache.hop.core.util.Utils.isEmpty( m_meta.getTestingStepInputName() )
               && m_meta.getEvalMode() != Evaluator.EvalMode.NONE ) {
             // check for the test source
-            String testInputStepName = environmentSubstitute( m_meta.getTestingStepInputName() );
+            String testInputStepName = resolve( m_meta.getTestingStepInputName() );
             boolean testMatch = false;
             for ( IStream input : infoStreams ) {
-              if ( environmentSubstitute( input.getSubject().toString() ).equals( testInputStepName ) ) {
+              if ( resolve( input.getSubject().toString() ).equals( testInputStepName ) ) {
                 testMatch = true;
                 m_data.m_testStream = input;
                 break;
@@ -172,18 +172,18 @@ public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, Base
         }
 
         m_data.m_trainingRowMeta =
-            getPipelineMeta().getTransformFields( (String) m_data.m_trainingStream.getSubject() );
+            getPipelineMeta().getTransformFields( variables, (String) m_data.m_trainingStream.getSubject() );
         List<String> trainingFieldNames = Arrays.asList( m_data.m_trainingRowMeta.getFieldNames() );
         m_data.m_testingRowMeta = null;
         List<String> testingFieldNames = null;
         if ( m_data.m_testStream != null ) {
-          m_data.m_testingRowMeta = getPipelineMeta().getTransformFields( (String) m_data.m_testStream.getSubject() );
+          m_data.m_testingRowMeta = getPipelineMeta().getTransformFields( variables, (String) m_data.m_testStream.getSubject() );
           testingFieldNames = Arrays.asList( m_data.m_testingRowMeta.getFieldNames() );
         }
 
         // class validation
         if ( !org.apache.hop.core.util.Utils.isEmpty( m_meta.getClassField() ) ) {
-          String classFieldName = environmentSubstitute( m_meta.getClassField() );
+          String classFieldName = resolve( m_meta.getClassField() );
           if ( !trainingFieldNames.contains( classFieldName ) ) {
             throw new HopException(
                 BaseMessages.getString( PKG, "BasePMIStep.Error.TrainingDataDoesNotContainClass", classFieldName ) );
@@ -294,7 +294,7 @@ public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, Base
           if ( org.apache.hop.core.util.Utils.isEmpty( m_meta.getBatchSize() ) ) {
             throw new HopException( BaseMessages.getString( PKG, "BasePMIStep.Error.NoBatchSizeSpecified" ) );
           }
-          m_data.m_batchSize = Integer.parseInt( environmentSubstitute( m_meta.getBatchSize() ) );
+          m_data.m_batchSize = Integer.parseInt( resolve( m_meta.getBatchSize() ) );
           if ( m_data.m_batchSize <= 0 ) {
             throw new HopException( BaseMessages.getString( PKG, "BasePMIStep.Error.BatchSizeMustBeGreaterThanZero" ) );
           }
@@ -304,7 +304,7 @@ public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, Base
             throw new HopException( BaseMessages.getString( PKG, "BasePMIStep.Error.NoStratificationFieldSpecified" ) );
           }
           // now check that this field is present in the input
-          String stratificationField = environmentSubstitute( m_meta.getStratificationFieldName() );
+          String stratificationField = resolve( m_meta.getStratificationFieldName() );
           if ( !trainingFieldNames.contains( stratificationField ) ) {
             throw new HopException( BaseMessages
                 .getString( PKG, "BasePMIStep.Error.TrainingDataDoesNotContainStratificationField",
@@ -332,7 +332,7 @@ public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, Base
         }
 
         if ( !org.apache.hop.core.util.Utils.isEmpty( m_meta.getRandomSeed() ) ) {
-          m_data.m_randomSeed = Integer.parseInt( environmentSubstitute( m_meta.getRandomSeed() ) );
+          m_data.m_randomSeed = Integer.parseInt( resolve( m_meta.getRandomSeed() ) );
         }
 
         // validate reservoir sampling
@@ -346,7 +346,7 @@ public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, Base
             throw new HopException( BaseMessages.getString( PKG, "BasePMIStep.Error.NoReservoirSizeSpecified" ) );
           }
 
-          String reservoirSizeS = environmentSubstitute( m_meta.getReservoirSize() );
+          String reservoirSizeS = resolve( m_meta.getReservoirSize() );
           m_data.m_reservoirSize = Integer.parseInt( reservoirSizeS );
           if ( m_data.m_reservoirSize <= 0 ) {
             throw new HopException(
@@ -379,11 +379,11 @@ public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, Base
             }
           } else if ( m_meta.getEvalMode() == Evaluator.EvalMode.CROSS_VALIDATION ) {
             if ( !org.apache.hop.core.util.Utils.isEmpty( m_meta.getXValFolds() ) ) {
-              m_data.m_xValFolds = Integer.parseInt( environmentSubstitute( m_meta.getXValFolds() ) );
+              m_data.m_xValFolds = Integer.parseInt( resolve( m_meta.getXValFolds() ) );
             }
           } else if ( m_meta.getEvalMode() == Evaluator.EvalMode.PERCENTAGE_SPLIT ) {
             if ( !org.apache.hop.core.util.Utils.isEmpty( m_meta.getPercentageSplit() ) ) {
-              m_data.m_percentageSplit = Integer.parseInt( environmentSubstitute( m_meta.getPercentageSplit() ) );
+              m_data.m_percentageSplit = Integer.parseInt( resolve( m_meta.getPercentageSplit() ) );
             }
           }
 
@@ -408,12 +408,12 @@ public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, Base
         if ( org.apache.hop.core.util.Utils.isEmpty( m_meta.getModelOutputPath() ) ) {
           logBasic( BaseMessages.getString( PKG, "BasePMIStep.Warning.NoModelPathSupplied" ) );
         } else {
-          m_data.m_modelOutputPath = environmentSubstitute( m_meta.getModelOutputPath() );
+          m_data.m_modelOutputPath = resolve( m_meta.getModelOutputPath() );
         }
         if ( org.apache.hop.core.util.Utils.isEmpty( m_meta.getModelFileName() ) ) {
           logBasic( BaseMessages.getString( PKG, "BasePMIStep.Warning.NoModelFileNameSupplied" ) );
         } else {
-          m_data.m_modelFileName = environmentSubstitute( m_meta.getModelFileName() );
+          m_data.m_modelFileName = resolve( m_meta.getModelFileName() );
         }
 
         // incremental scheme?
@@ -423,7 +423,7 @@ public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, Base
         if ( m_data.m_scheme.supportsResumableTraining() && !org.apache.hop.core.util.Utils
             .isEmpty( m_meta.getResumableModelPath() ) && ( m_meta.getEvalMode() == Evaluator.EvalMode.NONE
             || m_meta.getEvalMode() == Evaluator.EvalMode.SEPARATE_TEST_SET ) ) {
-          String modelPath = environmentSubstitute( m_meta.getResumableModelPath() );
+          String modelPath = resolve( m_meta.getResumableModelPath() );
           // TODO
         }
       } catch ( Exception ex ) {

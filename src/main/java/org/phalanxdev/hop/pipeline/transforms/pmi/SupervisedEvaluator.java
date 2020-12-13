@@ -95,7 +95,7 @@ public class SupervisedEvaluator extends BaseTransform<SupervisedEvaluatorMeta, 
       first = false;
       m_data.m_outputRowMeta = getInputRowMeta().clone();
       m_data.m_evaluatorUtil =
-          new GeneralSupervisedEvaluatorUtil( m_data.m_outputRowMeta, environmentSubstitute( m_meta.getClassName() ) );
+          new GeneralSupervisedEvaluatorUtil( m_data.m_outputRowMeta, resolve( m_meta.getClassName() ) );
       m_data.m_evaluatorUtil
           .getOutputFields( m_data.m_outputRowMeta, m_meta.getOutputIRStats(), m_meta.getOutputAUC() );
     }

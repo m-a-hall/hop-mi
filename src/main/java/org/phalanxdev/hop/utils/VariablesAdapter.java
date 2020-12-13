@@ -19,7 +19,7 @@ public class VariablesAdapter implements IMIVariableAdaptor {
 
   @Override
   public List<String> listVariables() {
-    return Arrays.asList( m_delegate.listVariables() );
+    return Arrays.asList( m_delegate.getVariableNames() );
   }
 
   @Override

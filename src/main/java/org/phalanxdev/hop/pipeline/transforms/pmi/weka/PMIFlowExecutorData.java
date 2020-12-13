@@ -454,7 +454,7 @@ public class PMIFlowExecutorData extends BaseTransformData implements ITransform
   // TODO plumb Kettle log wrapper through to here
   public static Flow getFlowFromFileVFS( String fileName, IVariables vars, Environment env ) throws Exception {
     if ( !org.apache.hop.core.util.Utils.isEmpty( fileName ) ) {
-      fileName = vars.environmentSubstitute( fileName );
+      fileName = vars.resolve( fileName );
       String extension = "kf"; // default is a json flow
       if ( fileName.lastIndexOf( '.' ) >= 0 ) {
         extension = fileName.substring( fileName.lastIndexOf( '.' ) + 1 );
@@ -501,7 +501,7 @@ public class PMIFlowExecutorData extends BaseTransformData implements ITransform
           BaseMessages.getString( PMIFlowExecutorMeta.PKG, "KnowledgeFlowData.Error.NoInputStepSpecified" ) );
     }
 
-    inputConnName = vars.environmentSubstitute( inputConnName );
+    inputConnName = vars.resolve( inputConnName );
     if ( streaming ) {
       if ( !inputConnName.equalsIgnoreCase( StepManager.CON_INSTANCE ) ) {
         throw new HopException( BaseMessages
@@ -511,28 +511,28 @@ public class PMIFlowExecutorData extends BaseTransformData implements ITransform
     }
 
     if ( m_flowRunner != null ) {
-      StepManagerImpl targetManager = m_flowRunner.getFlow().findStep( vars.environmentSubstitute( targetStepName ) );
+      StepManagerImpl targetManager = m_flowRunner.getFlow().findStep( vars.resolve( targetStepName ) );
       if ( targetManager == null ) {
         throw new HopException( BaseMessages
             .getString( PMIFlowExecutorMeta.PKG, "KFData.Message.Error.StepNotPartOfFlow",
-                vars.environmentSubstitute( targetStepName ) ) );
+                vars.resolve( targetStepName ) ) );
 
       }
       m_targetStep = targetManager.getManagedStep();
       if ( !m_targetStep.getClass().getCanonicalName().equals( "weka.knowledgeflow.steps.KettleInject" ) ) {
         throw new HopException( BaseMessages
             .getString( PMIFlowExecutorMeta.class, "KFData.Message.Error.InjectKFStepIsNotOfTypeKettleInject",
-                vars.environmentSubstitute( targetStepName ) ) );
+                vars.resolve( targetStepName ) ) );
       }
-      // m_targetStep = m_flowRunner.findStep( vars.environmentSubstitute( targetStepName ), KettleInject.class );
+      // m_targetStep = m_flowRunner.findStep( vars.resolve( targetStepName ), KettleInject.class );
       // make sure that the KettleInject step is outputting the same connection as the user has
       // specified as the inject connection type - otherwise the step downstream from the KettleInject
       // will not receive any data!
-      if ( m_targetStep.getStepManager().numOutgoingConnectionsOfType( vars.environmentSubstitute( inputConnName ) )
+      if ( m_targetStep.getStepManager().numOutgoingConnectionsOfType( vars.resolve( inputConnName ) )
           == 0 ) {
         throw new HopException( BaseMessages
             .getString( PMIFlowExecutorMeta.PKG, "KnowledgeFlowData.Error.KettleInjectNotOutputtingInjectConnType",
-                vars.environmentSubstitute( inputConnName ) ) );
+                vars.resolve( inputConnName ) ) );
       }
     }
   }
@@ -546,8 +546,8 @@ public class PMIFlowExecutorData extends BaseTransformData implements ITransform
           "KnowledgeFlowData.Error.BothOutputStepNameAndConnNameNeedSpecifying" ) ); //$NON-NLS-1$
     }
 
-    outputStepName = vars.environmentSubstitute( outputStepName );
-    outputConnName = vars.environmentSubstitute( outputConnName );
+    outputStepName = vars.resolve( outputStepName );
+    outputConnName = vars.resolve( outputConnName );
     StepManagerImpl manager = flowToUse.findStep( outputStepName );
     if ( manager == null ) {
       throw new HopTransformException( BaseMessages
@@ -887,20 +887,20 @@ public class PMIFlowExecutorData extends BaseTransformData implements ITransform
         .getString( PMIFlowExecutorMeta.PKG, "KnowledgeFlowData.Info.ConstructingInstancesFromReservoir" ) );
     Instances dataSet = reservoirToInstances( inputMeta );
     if ( kfMeta.getSetClass() ) {
-      Attribute classA = dataSet.attribute( vars.environmentSubstitute( kfMeta.getClassAttributeName() ) );
+      Attribute classA = dataSet.attribute( vars.resolve( kfMeta.getClassAttributeName() ) );
       if ( classA != null ) {
         dataSet.setClass( classA );
       } else {
         throw new HopException( BaseMessages
             .getString( PMIFlowExecutorMeta.PKG, "KnowledgeFlowData.Error.UnableToSetClassIndexCantFindAttribute",
-                vars.environmentSubstitute( kfMeta.getClassAttributeName() ) ) );
+                vars.resolve( kfMeta.getClassAttributeName() ) ) );
       }
     }
 
     m_log.logBasic(
         BaseMessages.getString( PMIFlowExecutorMeta.PKG, "KnowledgeFlowData.Info.InjectingInstancesIntoKF" ) );
 
-    Data data = new Data( vars.environmentSubstitute( kfMeta.getInjectConnectionName() ), dataSet );
+    Data data = new Data( vars.resolve( kfMeta.getInjectConnectionName() ), dataSet );
     data.setPayloadElement( StepManager.CON_AUX_DATA_SET_NUM, 1 );
     data.setPayloadElement( StepManager.CON_AUX_DATA_MAX_SET_NUM, 1 );
     m_flowRunner.injectWithExecutionFinishedCallback( data, finishedCallback, m_targetStep );
@@ -1069,7 +1069,7 @@ public class PMIFlowExecutorData extends BaseTransformData implements ITransform
   }
 
   public static File pathToURI( String path, IVariables vars ) throws Exception {
-    path = vars.environmentSubstitute( path );
+    path = vars.resolve( path );
     File result = null;
     if ( path.toLowerCase().startsWith( "file:" ) ) {
       path = path.replace( " ", "%20" );
