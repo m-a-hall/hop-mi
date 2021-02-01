@@ -307,11 +307,7 @@ public class GeneralSupervisedEvaluatorUtil {
       outRowMeta.addValueMeta( vm );
 
       vm =
-          ValueMetaFactory.createValueMeta( BaseMessages.getString( PKG, "BasePMIStepData.MAEFieldName" ),
-              IValueMeta.TYPE_NUMBER );
-      outRowMeta.addValueMeta( vm );
-      vm =
-          ValueMetaFactory.createValueMeta( BaseMessages.getString( PKG, "BasePMIStepData.RMSEFieldName" ),
+          ValueMetaFactory.createValueMeta( BaseMessages.getString( PKG, "BasePMIStepData.KappaStatisticFieldName" ),
               IValueMeta.TYPE_NUMBER );
       outRowMeta.addValueMeta( vm );
     } else {
@@ -321,6 +317,15 @@ public class GeneralSupervisedEvaluatorUtil {
       outRowMeta.addValueMeta( vm );
     }
 
+    vm =
+        ValueMetaFactory.createValueMeta( BaseMessages.getString( PKG, "BasePMIStepData.MAEFieldName" ),
+            IValueMeta.TYPE_NUMBER );
+    outRowMeta.addValueMeta( vm );
+    vm =
+        ValueMetaFactory.createValueMeta( BaseMessages.getString( PKG, "BasePMIStepData.RMSEFieldName" ),
+            IValueMeta.TYPE_NUMBER );
+    outRowMeta.addValueMeta( vm );
+
     // TODO add relative metrics here... Need user-specified training data class priors
 
     vm =
@@ -329,11 +334,6 @@ public class GeneralSupervisedEvaluatorUtil {
     outRowMeta.addValueMeta( vm );
 
     if ( !m_classIsNumeric ) {
-      vm =
-          ValueMetaFactory.createValueMeta( BaseMessages.getString( PKG, "BasePMIStepData.KappaStatisticFieldName" ),
-              IValueMeta.TYPE_NUMBER );
-      outRowMeta.addValueMeta( vm );
-
       // Per-class IR statistics
       if ( outputPerClassIR ) {
         for ( int i = 0; i < m_classAtt.numValues(); i++ ) {
@@ -406,12 +406,8 @@ public class GeneralSupervisedEvaluatorUtil {
       outputRow[i++] = m_eval.incorrect();
       outputRow[i++] = m_eval.pctCorrect();
       outputRow[i++] = m_eval.pctIncorrect();
-    }
-
-    outputRow[i++] = m_eval.meanAbsoluteError();
-    outputRow[i++] = m_eval.rootMeanSquaredError();
-
-    if ( m_classIsNumeric ) {
+      outputRow[i++] = m_eval.kappa();
+    } else {
       try {
         outputRow[i++] = m_eval.correlationCoefficient();
       } catch ( Exception e ) {
@@ -419,12 +415,13 @@ public class GeneralSupervisedEvaluatorUtil {
       }
     }
 
+    outputRow[i++] = m_eval.meanAbsoluteError();
+    outputRow[i++] = m_eval.rootMeanSquaredError();
+
     // TODO relative measures go here
 
     outputRow[i++] = m_eval.numInstances();
     if ( !m_classIsNumeric ) {
-      outputRow[i++] = m_eval.kappa();
-
       if ( outputPerClassIR ) {
         for ( int j = 0; j < m_classAtt.numValues(); j++ ) {
           outputRow[i++] = m_eval.truePositiveRate( j );
