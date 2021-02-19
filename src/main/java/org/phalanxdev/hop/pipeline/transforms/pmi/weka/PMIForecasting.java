@@ -501,11 +501,11 @@ public class PMIForecasting extends BaseTransform<PMIForecastingMeta, PMIForecas
     }
 
     if ( log.isRowLevel() ) {
-      log.logRowlevel( toString(), "Read row #" + linesRead + " : " + r );
+      log.logRowlevel( toString(), "Read row #" + getLinesRead() + " : " + r );
     }
 
-    if ( checkFeedback( linesRead ) ) {
-      logBasic( "Linenr " + linesRead );
+    if ( checkFeedback( getLinesRead() ) ) {
+      logBasic( "Linenr " + getLinesRead() );
     }
     return true;
   }

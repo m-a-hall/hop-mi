@@ -11,7 +11,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.target>1.8</maven.compiler.target>
     <maven.compiler.source>1.8</maven.compiler.source>
-    <hop.version>0.60-SNAPSHOT</hop.version>
+    <hop.version>0.70-SNAPSHOT</hop.version>
     <!-- <weka.version>3.8.3.1</weka.version> -->
     <weka.version>3.8.5</weka.version>
     <weka.timeseries.version>1.0.25</weka.timeseries.version>
@@ -37,7 +37,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.hop</groupId>
-      <artifactId>hop-ui-swt</artifactId>
+      <artifactId>hop-ui</artifactId>
       <version>${hop.version}</version>
       <scope>provided</scope>
     </dependency>
