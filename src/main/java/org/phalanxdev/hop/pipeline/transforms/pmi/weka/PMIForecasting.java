@@ -72,9 +72,9 @@ import weka.core.Instances;
  * <p>
  * <p>
  * Attributes that the Weka model was constructed from are automatically mapped
- * to incoming Kettle fields on the basis of name and type. Any attributes that
+ * to incoming Apache Hop fields on the basis of name and type. Any attributes that
  * cannot be mapped due to type mismatch or not being present in the incoming
- * fields receive missing values when incoming Kettle rows are converted to
+ * fields receive missing values when incoming Apache Hop rows are converted to
  * Weka's Instance format. Similarly, any values for string fields that have not
  * been seen during the training of the Weka model are converted to missing
  * values.
@@ -82,7 +82,7 @@ import weka.core.Instances;
  * @author Mark Hall (mhall{[at]}waikato{[dot]}ac{[dot]}nz)
  * @version $Revision$
  */
-public class PMIForecasting extends BaseTransform<PMIForecastingMeta, PMIForecastingData> implements ITransform<PMIForecastingMeta, PMIForecastingData> {
+public class PMIForecasting extends BaseTransform<PMIForecastingMeta, PMIForecastingData>{
 
   private PMIForecastingMeta m_meta;
   private PMIForecastingData m_data;

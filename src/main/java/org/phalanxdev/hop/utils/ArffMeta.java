@@ -38,8 +38,8 @@ public class ArffMeta implements Cloneable {
   // the name of this field
   private final String m_fieldName;
 
-  // the Kettle data type (as defined in ValueMetaInterface)
-  private int m_kettleType;
+  // the Apache Hop data type (as defined in ValueMetaInterface)
+  private int m_hopType;
 
   // the ARFF data type (as defined by the constants above)
   private int m_arffType;
@@ -55,13 +55,13 @@ public class ArffMeta implements Cloneable {
    * Constructor
    * 
    * @param fieldName the name of this field
-   * @param kettleType the Kettle data type
+   * @param hopType the Apache Hop data type
    * @param arffType the ARFF data type
    */
-  public ArffMeta(String fieldName, int kettleType, int arffType) {
+  public ArffMeta(String fieldName, int hopType, int arffType) {
 
     m_fieldName = fieldName;
-    m_kettleType = kettleType;
+    m_hopType = hopType;
     m_arffType = arffType;
     // m_precision = precision;
   }
@@ -76,7 +76,7 @@ public class ArffMeta implements Cloneable {
     m_fieldName = XmlHandler.getTagValue(arffNode, "field_name");
     temp = XmlHandler.getTagValue(arffNode, "kettle_type");
     try {
-      m_kettleType = Integer.parseInt(temp);
+      m_hopType = Integer.parseInt(temp);
     } catch (Exception ex) {
       // ignore - shouldn't actually get here
     }
@@ -101,12 +101,12 @@ public class ArffMeta implements Cloneable {
   }
 
   /**
-   * Get the Kettle data type (as defined in ValueMetaInterface)
+   * Get the Apache Hop data type (as defined in ValueMetaInterface)
    * 
-   * @return the Kettle data type of this field
+   * @return the Apache Hop data type of this field
    */
-  public int getKettleType() {
-    return m_kettleType;
+  public int getHopType() {
+    return m_hopType;
   }
 
   /**
@@ -169,7 +169,7 @@ public class ArffMeta implements Cloneable {
     String xml = ("<" + XML_TAG + ">");
 
     xml += XmlHandler.addTagValue("field_name", m_fieldName);
-    xml += XmlHandler.addTagValue("kettle_type", m_kettleType);
+    xml += XmlHandler.addTagValue("kettle_type", m_hopType);
     xml += XmlHandler.addTagValue("arff_type", m_arffType);
     xml += XmlHandler.addTagValue("date_format", m_dateFormat);
     xml += XmlHandler.addTagValue("nominal_vals", m_nominalVals);

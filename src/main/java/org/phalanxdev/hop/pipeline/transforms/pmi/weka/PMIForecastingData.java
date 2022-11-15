@@ -226,10 +226,10 @@ public class PMIForecastingData extends BaseTransformData implements ITransformD
 
   /**
    * Finds a mapping between the attributes that a forecasting model has been
-   * trained with and the incoming Kettle row format. Returns an array of
+   * trained with and the incoming Apache Hop row format. Returns an array of
    * indices, where the element at index 0 of the array is the index of the
-   * Kettle field that corresponds to the first attribute in the Instances
-   * structure, the element at index 1 is the index of the Kettle fields that
+   * Apache Hop field that corresponds to the first attribute in the Instances
+   * structure, the element at index 1 is the index of the Apache Hop fields that
    * corresponds to the second attribute, ...
    *
    * @param header       the Instances header
@@ -493,7 +493,7 @@ public class PMIForecastingData extends BaseTransformData implements ITransformD
 
   /**
    * Helper method that constructs an Instance to input to the Weka model based
-   * on incoming Kettle fields and pre-constructed attribute-to-field mapping
+   * on incoming Apache Hop fields and pre-constructed attribute-to-field mapping
    * data.
    *
    * @param inputMeta      a <code>IRowMeta</code> value

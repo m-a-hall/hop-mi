@@ -36,8 +36,7 @@ import org.apache.hop.pipeline.transform.TransformMeta;
  * @author Mark Hall (mhall{[at]}waikato{[dot]}ac{[dot]}nz)
  * @version $Revision: $
  */
-public class SupervisedEvaluator extends BaseTransform<SupervisedEvaluatorMeta, SupervisedEvaluatorData> implements
-    ITransform<SupervisedEvaluatorMeta, SupervisedEvaluatorData> {
+public class SupervisedEvaluator extends BaseTransform<SupervisedEvaluatorMeta, SupervisedEvaluatorData>{
 
   private static Class<?> PKG = SupervisedEvaluator.class;
 

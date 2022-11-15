@@ -174,15 +174,7 @@ public class SupervisedEvaluatorDialog extends BaseTransformDialog implements IT
     } );
     setButtonPositions( new Button[] { wOk, wCancel }, MARGIN, null );
 
-    lsDef = new SelectionAdapter() {
-      @Override public void widgetDefaultSelected( SelectionEvent e ) {
-        ok();
-      }
-    };
-
     getData( m_inputMeta );
-
-    wTransformName.addSelectionListener( lsDef );
 
     // Detect X or ALT-F4 or something that kills this window...
     shell.addShellListener( new ShellAdapter() {

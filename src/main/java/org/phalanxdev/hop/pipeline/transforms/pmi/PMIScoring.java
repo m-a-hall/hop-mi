@@ -38,7 +38,7 @@ import java.util.Map;
  * @author Mark Hall (mhall{[at]}waikato{[dot]}ac{[dot]}nz)
  * @version $Revision: $
  */
-public class PMIScoring extends BaseTransform<PMIScoringMeta, PMIScoringData> implements ITransform<PMIScoringMeta, PMIScoringData> {
+public class PMIScoring extends BaseTransform<PMIScoringMeta, PMIScoringData> {
 
   protected PMIScoringMeta m_meta;
   protected PMIScoringData m_data;
