@@ -23,16 +23,15 @@ import org.apache.hop.core.row.IRowMeta;
 import org.apache.hop.core.row.IValueMeta;
 import org.apache.hop.core.row.value.ValueMetaFactory;
 import org.apache.hop.core.variables.IVariables;
+import org.apache.hop.pipeline.transform.stream.IStream;
 import org.phalanxdev.hop.utils.ArffMeta;
 import org.apache.hop.i18n.BaseMessages;
 import org.apache.hop.pipeline.PipelineMeta;
 import org.apache.hop.pipeline.transform.BaseTransformMeta;
 import org.apache.hop.pipeline.transform.ITransformDialog;
 import org.apache.hop.pipeline.transform.TransformMeta;
-import org.apache.hop.pipeline.transform.errorhandling.IStream;
 import org.phalanxdev.hop.pipeline.transforms.pmi.BaseSupervisedPMIData;
 import org.phalanxdev.hop.pipeline.transforms.pmi.BaseSupervisedPMIMeta;
-import org.phalanxdev.hop.pipeline.transforms.pmi.PMILifecycleListener;
 import org.phalanxdev.mi.Evaluator;
 import org.phalanxdev.mi.PMIEngine;
 import org.phalanxdev.mi.Scheme;
@@ -403,14 +402,6 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     } );
     setButtonPositions( new Button[] { wOk, wCancel }, MARGIN, null );
 
-    lsDef = new SelectionAdapter() {
-      @Override public void widgetDefaultSelected( SelectionEvent e ) {
-        ok();
-      }
-    };
-
-    wTransformName.addSelectionListener( lsDef );
-
     // Detect X or ALT-F4 or something that kills this window...
     shell.addShellListener( new ShellAdapter() {
       @Override public void shellClosed( ShellEvent e ) {
@@ -488,10 +479,10 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
       TableItem item = m_fieldsTable.getNonEmpty( i );
 
       String fieldName = item.getText( 1 );
-      int kettleType = ValueMetaFactory.getIdForValueMeta( item.getText( 2 ) );
+      int hopType = ValueMetaFactory.getIdForValueMeta( item.getText( 2 ) );
       int arffType = getArffTypeInt( item.getText( 3 ) );
       String nomVals = item.getText( 4 );
-      ArffMeta newArffMeta = new ArffMeta( fieldName, kettleType, arffType );
+      ArffMeta newArffMeta = new ArffMeta( fieldName, hopType, arffType );
       if ( !org.apache.hop.core.util.Utils.isEmpty( nomVals ) ) {
         newArffMeta.setNominalVals( nomVals );
       }
@@ -610,7 +601,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
       for ( ArffMeta m : userFields ) {
         TableItem item = new TableItem( m_fieldsTable.table, SWT.NONE );
         item.setText( 1, org.apache.hop.core.Const.NVL( m.getFieldName(), "" ) );
-        item.setText( 2, org.apache.hop.core.Const.NVL( ValueMetaFactory.getValueMetaName( m.getKettleType() ), "" ) );
+        item.setText( 2, org.apache.hop.core.Const.NVL( ValueMetaFactory.getValueMetaName( m.getHopType() ), "" ) );
         item.setText( 3, org.apache.hop.core.Const.NVL( BaseSupervisedPMIData.typeToString( m.getArffType() ), "" ) );
         if ( !org.apache.hop.core.util.Utils.isEmpty( m.getNominalVals() ) ) {
           item.setText( 4, m.getNominalVals() );
@@ -2243,10 +2234,10 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
         for ( int i = 0; i < nrNonEmptyFields; i++ ) {
           TableItem item = m_fieldsTable.getNonEmpty( i );
 
-          int kettleType = ValueMetaFactory.getIdForValueMeta( item.getText( 2 ) );
+          int hopType = ValueMetaFactory.getIdForValueMeta( item.getText( 2 ) );
           if ( org.apache.hop.core.util.Utils.isEmpty( item.getText( 3 ) ) ) {
 
-            switch ( kettleType ) {
+            switch ( hopType ) {
               case IValueMeta.TYPE_NUMBER:
               case IValueMeta.TYPE_INTEGER:
               case IValueMeta.TYPE_BOOLEAN:

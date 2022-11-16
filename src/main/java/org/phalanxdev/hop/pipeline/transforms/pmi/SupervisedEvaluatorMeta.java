@@ -49,8 +49,7 @@ import java.util.Arrays;
  * @version $Revision: $
  */
 @Transform( id = "SupervisedEvaluator", image = "WEKAS.svg", name = "Supervised Evaluator", description = "Compute supervised evaluation metrics for incoming row data that contains predictions from a learning scheme", categoryDescription = "PMI" )
-public class SupervisedEvaluatorMeta extends BaseTransformMeta implements
-    ITransformMeta<SupervisedEvaluator, SupervisedEvaluatorData> {
+public class SupervisedEvaluatorMeta extends BaseTransformMeta<SupervisedEvaluator, SupervisedEvaluatorData>{
 
   protected String m_className = "";
 
@@ -102,20 +101,6 @@ public class SupervisedEvaluatorMeta extends BaseTransformMeta implements
     } catch ( Exception e ) {
       e.printStackTrace();
     }
-  }
-
-  @Override
-  public SupervisedEvaluatorData getTransformData( ) {
-    return new SupervisedEvaluatorData( );
-  }
-
-  @Override public ITransform createTransform( TransformMeta transformMeta, SupervisedEvaluatorData data, int copyNr,
-      PipelineMeta pipelineMeta, Pipeline pipeline) {
-    return new SupervisedEvaluator( transformMeta, this, data, copyNr, pipelineMeta, pipeline);
-  }
-
-  public String getDialogClassName() {
-    return SupervisedEvaluatorDialog.class.getCanonicalName();
   }
 
   protected static Attribute createClassAttribute( String className, String nominalVals ) {

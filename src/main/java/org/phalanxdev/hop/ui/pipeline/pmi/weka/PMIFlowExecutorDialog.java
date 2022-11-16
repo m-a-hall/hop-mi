@@ -28,7 +28,6 @@ import org.apache.hop.pipeline.PipelineMeta;
 import org.apache.hop.pipeline.transform.BaseTransformMeta;
 import org.apache.hop.pipeline.transform.ITransformDialog;
 import org.apache.hop.pipeline.transform.TransformMeta;
-import org.phalanxdev.hop.pipeline.transforms.pmi.PMILifecycleListener;
 import org.phalanxdev.hop.pipeline.transforms.pmi.weka.PMIFlowExecutorData;
 import org.phalanxdev.hop.pipeline.transforms.pmi.weka.PMIFlowExecutorMeta;
 import org.apache.hop.ui.core.dialog.ErrorDialog;
@@ -55,11 +54,9 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
@@ -297,28 +294,8 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
     setButtonPositions( new Button[] { wOk, wCancel }, margin, m_wTabFolder );
 
     // Add listeners
-    lsCancel = new Listener() {
-      @Override public void handleEvent( Event e ) {
-        cancel();
-      }
-    };
-
-    lsOk = new Listener() {
-      @Override public void handleEvent( Event e ) {
-        ok();
-      }
-    };
-
-    wCancel.addListener( SWT.Selection, lsCancel );
-    wOk.addListener( SWT.Selection, lsOk );
-
-    lsDef = new SelectionAdapter() {
-      @Override public void widgetDefaultSelected( SelectionEvent e ) {
-        ok();
-      }
-    };
-
-    wTransformName.addSelectionListener( lsDef );
+    wCancel.addListener( SWT.Selection, e -> cancel() );
+    wOk.addListener( SWT.Selection, e -> ok() );
 
     // Detect X or ALT-F4 or something that kills this window...
     shell.addShellListener( new ShellAdapter() {
@@ -1181,17 +1158,7 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
     temp.top = new FormAttachment( m_wFields, margin );
     wGet.setLayoutData( temp );
 
-    lsGet = new Listener() {
-      @Override public void handleEvent( Event e ) {
-        ArffMeta[] tempAM = setupArffMetas();
-        arffMetasToFields( tempAM );
-        // ArffMeta[] tempAM = fieldsToArffMe
-        setUpClassAttributeNames( tempAM );
-      }
-    };
-    wGet.addListener( SWT.Selection, lsGet );
-
-    wGet.addListener( SWT.Selection, lsGet );
+    wGet.addListener( SWT.Selection, e-> get() );
 
     Label wlRelationName = new Label( wFieldsComp, SWT.RIGHT );
     wlRelationName.setText( BaseMessages.getString( PMIFlowExecutorMeta.PKG, "KnowledgeFlowDialog.RelationName.Label" ) );
@@ -1331,7 +1298,7 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
 
           TableItem item = new TableItem( table, SWT.NONE );
           item.setText( 1, Const.NVL( fields[i].getFieldName(), "" ) ); //$NON-NLS-1$
-          item.setText( 2, Const.NVL( ValueMetaFactory.getValueMetaName( fields[i].getKettleType() ), "" ) );
+          item.setText( 2, Const.NVL( ValueMetaFactory.getValueMetaName( fields[i].getHopType() ), "" ) );
           item.setText( 3, Const.NVL( getArffTypeString( fields[i].getArffType() ), "" ) );
           if ( !Utils.isEmpty( fields[i].getDateFormat() ) ) {
             item.setText( 4, fields[i].getDateFormat() );
@@ -1426,9 +1393,9 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
       TableItem item = m_wFields.getNonEmpty( i );
 
       String fieldName = item.getText( 1 );
-      int kettleType = ValueMetaFactory.getIdForValueMeta( item.getText( 2 ) );
+      int hopType = ValueMetaFactory.getIdForValueMeta( item.getText( 2 ) );
       int arffType = getArffTypeInt( item.getText( 3 ) );
-      tempAM[i] = new ArffMeta( fieldName, kettleType, arffType );
+      tempAM[i] = new ArffMeta( fieldName, hopType, arffType );
       String dateForNomVals = item.getText( 4 );
       if ( !Utils.isEmpty( dateForNomVals ) ) {
         if ( arffType == ArffMeta.DATE ) {
@@ -1484,5 +1451,12 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
     }
 
     return success;
+  }
+
+  private void get(){
+    ArffMeta[] tempAM = setupArffMetas();
+    arffMetasToFields( tempAM );
+    // ArffMeta[] tempAM = fieldsToArffMe
+    setUpClassAttributeNames( tempAM );
   }
 }

@@ -56,8 +56,7 @@ import weka.core.SerializedObject;
  * @version $Revision$
  */
 @Transform( id = "PMIForecasting", image = "WEKAS.svg", documentationUrl = "http://wiki.pentaho.com/display/EAI/Weka+Forecasting", name = "PMI Forecasting", description = "This step makes time series forecasts from a pre-built WEKA forecasting model", categoryDescription = "PMI" )
-public class PMIForecastingMeta extends BaseTransformMeta
-    implements ITransformMeta<PMIForecasting, PMIForecastingData> {
+public class PMIForecastingMeta extends BaseTransformMeta<PMIForecasting, PMIForecastingData> {
 
   public static Class<?> PKG = PMIForecastingMeta.class;
 
@@ -238,8 +237,8 @@ public class PMIForecastingMeta extends BaseTransformMeta
    * Finds a mapping between the attributes that a forecasting model model has
    * seen during training and the incoming row format. Returns an array of
    * indices, where the element at index 0 of the array is the index of the
-   * Kettle field that corresponds to the first attribute in the Instances
-   * structure, the element at index 1 is the index of the Kettle fields that
+   * Apache Hop field that corresponds to the first attribute in the Instances
+   * structure, the element at index 1 is the index of the Apache hop fields that
    * corresponds to the second attribute, ...
    *
    * @param header       the Instances header
@@ -250,7 +249,7 @@ public class PMIForecastingMeta extends BaseTransformMeta
   }
 
   /**
-   * Get the mapping from attributes to incoming Kettle fields
+   * Get the mapping from attributes to incoming Apache Hop fields
    *
    * @return the mapping as an array of integer indices
    */
@@ -562,7 +561,7 @@ public class PMIForecastingMeta extends BaseTransformMeta
       }
     }
 
-    // We will be emitting all incoming Kettle fields. Historical
+    // We will be emitting all incoming Apache Hop fields. Historical
     // priming rows will be passed through. Forecasted rows will
     // contain values for all targets that this forecaster has been
     // trained to predict. All other fields will be set to missing,
@@ -660,20 +659,4 @@ public class PMIForecastingMeta extends BaseTransformMeta
     return PMIForecastingDialog.class.getCanonicalName();
   }
 
-  /**
-   * Get a new instance of the appropriate data class. This data class
-   * implements the StepDataInterface. It basically contains the persisting data
-   * that needs to live on, even if a worker thread is terminated.
-   *
-   * @return a <code>PMIForecastingData</code> value
-   */
-  @Override public PMIForecastingData getTransformData() {
-
-    return new PMIForecastingData();
-  }
-
-  public ITransform createTransform( TransformMeta transformMeta, PMIForecastingData pmiForecastingData,
-      int copyNr, PipelineMeta pipelineMeta, Pipeline pipeline ) {
-    return new PMIForecasting( transformMeta, this, pmiForecastingData, copyNr, pipelineMeta, pipeline );
-  }
 }

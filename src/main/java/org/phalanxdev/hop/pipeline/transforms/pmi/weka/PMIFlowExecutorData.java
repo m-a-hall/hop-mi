@@ -90,7 +90,7 @@ public class PMIFlowExecutorData extends BaseTransformData implements ITransform
   protected ArffMeta[] m_injectArffMetas;
 
   /**
-   * Mapping to fields in incoming kettle data
+   * Mapping to fields in incoming Apache Hop data
    */
   protected int[] m_injectFieldIndexes;
 
@@ -282,7 +282,7 @@ public class PMIFlowExecutorData extends BaseTransformData implements ITransform
    *
    * @param flow     the flow to execute
    * @param env      environment variables
-   * @param logLevel Kettle log level to map to Weka's KF log level
+   * @param logLevel Apache Hop log level to map to Weka's KF log level
    */
   protected void setFlow( Flow flow, Environment env, LogLevel logLevel ) {
     m_flowToUse = flow;
@@ -328,7 +328,7 @@ public class PMIFlowExecutorData extends BaseTransformData implements ITransform
   }
 
   /**
-   * Sets up the ArffMeta array based on the incomming Kettle row format.
+   * Sets up the ArffMeta array based on the incomming Apache Hop row format.
    *
    * @param rmi a <code>IRowMeta</code> value
    */
@@ -451,7 +451,7 @@ public class PMIFlowExecutorData extends BaseTransformData implements ITransform
     }
   }
 
-  // TODO plumb Kettle log wrapper through to here
+  // TODO plumb Apache Hop log wrapper through to here
   public static Flow getFlowFromFileVFS( String fileName, IVariables vars, Environment env ) throws Exception {
     if ( !org.apache.hop.core.util.Utils.isEmpty( fileName ) ) {
       fileName = vars.resolve( fileName );
@@ -653,7 +653,7 @@ public class PMIFlowExecutorData extends BaseTransformData implements ITransform
   }
 
   /**
-   * Construct an instance from a kettle row
+   * Construct an instance from a Apache Hop row
    *
    * @param inputRowMeta the meta data for the row
    * @param row          the row itself
@@ -985,7 +985,7 @@ public class PMIFlowExecutorData extends BaseTransformData implements ITransform
     }
 
     // Store any necessary nominal header values first.
-    // Store as (possibly) kettle internal binary format (for speed).
+    // Store as (possibly) Apache Hop internal binary format (for speed).
     // At the end of the incoming stream of rows we will construct
     // the arff header and at that time convert from the binary format.
     if ( m_hasNominalAtts ) {

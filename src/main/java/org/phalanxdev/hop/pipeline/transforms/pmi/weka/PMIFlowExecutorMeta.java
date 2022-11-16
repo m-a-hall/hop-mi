@@ -54,8 +54,7 @@ import weka.knowledgeflow.StepManagerImpl;
 @Transform( id = "PMIFlowExecutor", image = "WEKAS.svg", name = "PMI Flow Executor", description =
     "Executes a WEKA Knowledge Flow data "
         + "mining process", documentationUrl = "http://wiki.pentaho.com/display/EAI/Knowledge+Flow", categoryDescription = "PMI" )
-public class PMIFlowExecutorMeta extends BaseTransformMeta implements
-    ITransformMeta<PMIFlowExecutor, PMIFlowExecutorData> {
+public class PMIFlowExecutorMeta extends BaseTransformMeta<PMIFlowExecutor, PMIFlowExecutorData> {
 
   public static Class<?> PKG = PMIFlowExecutorMeta.class;
 
@@ -220,20 +219,20 @@ public class PMIFlowExecutorMeta extends BaseTransformMeta implements
   }
 
   /**
-   * Get whether incoming kettle rows are to be passed through to any downstream kettle steps (rather than output of
+   * Get whether incoming Apache Hop rows are to be passed through to any downstream Apache Hop transforms (rather than output of
    * knowledge flow being passed on)
    *
-   * @return true if rows are to be passed on to downstream kettle steps
+   * @return true if rows are to be passed on to downstream Apache Hop transforms
    */
   public boolean getPassRowsThrough() {
     return m_passRowsThrough;
   }
 
   /**
-   * Set whether incoming kettle rows are to be passed through to any downstream kettle steps (rather than output of the
+   * Set whether incoming Apache Hop rows are to be passed through to any downstream Apache Hop transforms (rather than output of the
    * knowledge flow being passed on).
    *
-   * @param p true if rows are to be passed on to downstream kettle steps
+   * @param p true if rows are to be passed on to downstream Apache Hop transforms
    */
   public void setPassRowsThrough( boolean p ) {
     m_passRowsThrough = p;
@@ -729,14 +728,4 @@ public class PMIFlowExecutorMeta extends BaseTransformMeta implements
     return PMIFlowExecutorDialog.class.getCanonicalName();
   }
 
-
-  @Override
-  public ITransform createTransform( TransformMeta transformMeta, PMIFlowExecutorData stepDataInterface, int i, PipelineMeta pipelineMeta,
-      Pipeline pipeline ) {
-    return new PMIFlowExecutor( transformMeta, this, stepDataInterface, i, pipelineMeta, pipeline );
-  }
-
-  @Override public PMIFlowExecutorData getTransformData() {
-    return new PMIFlowExecutorData();
-  }
 }

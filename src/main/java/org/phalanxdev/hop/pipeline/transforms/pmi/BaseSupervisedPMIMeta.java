@@ -15,13 +15,16 @@
 package org.phalanxdev.hop.pipeline.transforms.pmi;
 
 import org.apache.hop.core.Const;
-import org.apache.hop.core.ICheckResult;
+import org.apache.hop.core.annotations.Transform;
 import org.apache.hop.core.exception.HopPluginException;
 import org.apache.hop.core.exception.HopTransformException;
 import org.apache.hop.core.exception.HopXmlException;
 import org.apache.hop.core.row.IRowMeta;
 import org.apache.hop.core.variables.IVariables;
 import org.apache.hop.core.xml.XmlHandler;
+import org.apache.hop.pipeline.transform.stream.IStream;
+import org.apache.hop.pipeline.transform.stream.Stream;
+import org.apache.hop.pipeline.transform.stream.StreamIcon;
 import org.phalanxdev.hop.utils.ArffMeta;
 import org.apache.hop.i18n.BaseMessages;
 import org.apache.hop.metadata.api.IHopMetadataProvider;
@@ -33,9 +36,6 @@ import org.apache.hop.pipeline.transform.ITransformIOMeta;
 import org.apache.hop.pipeline.transform.ITransformMeta;
 import org.apache.hop.pipeline.transform.TransformIOMeta;
 import org.apache.hop.pipeline.transform.TransformMeta;
-import org.apache.hop.pipeline.transform.errorhandling.IStream;
-import org.apache.hop.pipeline.transform.errorhandling.Stream;
-import org.apache.hop.pipeline.transform.errorhandling.StreamIcon;
 import org.phalanxdev.mi.Evaluator;
 import org.phalanxdev.mi.engines.WekaEngine;
 import org.phalanxdev.hop.ui.pipeline.pmi.BaseSupervisedPMIDialog;
@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Base class for PMI step metadata. Handles all the configuration required for an arbitrary PMI classifier/regressor.
+ * Base class for PMI transform metadata. Handles all the configuration required for an arbitrary PMI classifier/regressor.
  * Subclasses need only provide a no-args constructor that calls s{@code setSchemeName()} in order to set the internal
  * name for a scheme that PMI supports ({@see Scheme}) for a list of schemes that are supported. Note that a given engine
  * might or might not support a specific scheme.
@@ -57,8 +57,7 @@ import java.util.Map;
  * @author Mark Hall (mhall{[at]}waikato{[dot]}ac{[dot]}nz)
  * @version $Revision: $
  */
-public abstract class BaseSupervisedPMIMeta extends BaseTransformMeta
-    implements ITransformMeta<BaseSupervisedPMI, BaseSupervisedPMIData> {
+public abstract class BaseSupervisedPMIMeta extends BaseTransformMeta<BaseSupervisedPMI, BaseSupervisedPMIData>{
 
   public static Class<?> PKG = BaseSupervisedPMIMeta.class;
 
@@ -883,15 +882,6 @@ public abstract class BaseSupervisedPMIMeta extends BaseTransformMeta
   @Override public void setDefault() {
     m_rowsToProcess = DEFAULT_ROWS_TO_PROCESS;
     m_engineName = WekaEngine.ENGINE_NAME;
-  }
-
-  @Override public BaseSupervisedPMIData getTransformData() {
-    return new BaseSupervisedPMIData();
-  }
-
-  public ITransform createTransform( TransformMeta transformMeta, BaseSupervisedPMIData baseSupervisedPMIData,
-      int copyNr, PipelineMeta pipelineMeta, Pipeline pipeline ) {
-    return new BaseSupervisedPMI( transformMeta, this, baseSupervisedPMIData, copyNr, pipelineMeta, pipeline );
   }
 
   @Override public String getDialogClassName() {

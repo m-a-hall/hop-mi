@@ -57,8 +57,7 @@ import static weka.knowledgeflow.StepManager.*;
  *
  * @author Mark Hall (mhall{[at]}waikato{[dot]}ac{[dot]}nz)
  */
-public class PMIFlowExecutor extends BaseTransform<PMIFlowExecutorMeta, PMIFlowExecutorData> implements ITransform<PMIFlowExecutorMeta, PMIFlowExecutorData>,
-    StepOutputListener {
+public class PMIFlowExecutor extends BaseTransform<PMIFlowExecutorMeta, PMIFlowExecutorData> implements StepOutputListener {
 
   /**
    * The environment variables to pass to the flow

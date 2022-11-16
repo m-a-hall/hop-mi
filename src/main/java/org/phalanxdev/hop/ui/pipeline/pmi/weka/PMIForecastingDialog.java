@@ -473,27 +473,8 @@ public class PMIForecastingDialog extends BaseTransformDialog implements ITransf
     setButtonPositions( new Button[] { wOk, wCancel }, margin, m_wTabFolder );
 
     // Add listeners
-    lsCancel = new Listener() {
-      @Override public void handleEvent( Event e ) {
-        cancel();
-      }
-    };
-    lsOk = new Listener() {
-      @Override public void handleEvent( Event e ) {
-        ok();
-      }
-    };
-
-    wCancel.addListener( SWT.Selection, lsCancel );
-    wOk.addListener( SWT.Selection, lsOk );
-
-    lsDef = new SelectionAdapter() {
-      @Override public void widgetDefaultSelected( SelectionEvent e ) {
-        ok();
-      }
-    };
-
-    m_wStepname.addSelectionListener( lsDef );
+    wCancel.addListener( SWT.Selection, e -> cancel() );
+    wOk.addListener( SWT.Selection, e -> ok() );
 
     // Detect X or ALT-F4 or something that kills this window...
     shell.addShellListener( new ShellAdapter() {
@@ -685,7 +666,7 @@ public class PMIForecastingDialog extends BaseTransformDialog implements ITransf
 
   /**
    * Build a string that shows the mappings between Weka attributes and incoming
-   * Kettle fields.
+   * Apache Hop fields.
    *
    * @param model a <code>WekaForecastingModel</code> value
    */

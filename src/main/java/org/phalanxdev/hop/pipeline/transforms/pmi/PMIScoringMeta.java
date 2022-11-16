@@ -23,15 +23,10 @@ import org.apache.hop.core.row.IValueMeta;
 import org.apache.hop.core.row.value.ValueMetaFactory;
 import org.apache.hop.core.variables.IVariables;
 import org.apache.hop.metadata.api.IHopMetadataProvider;
-import org.apache.hop.pipeline.Pipeline;
-import org.apache.hop.pipeline.PipelineMeta;
 import org.apache.hop.pipeline.transform.BaseTransformMeta;
-import org.apache.hop.pipeline.transform.ITransform;
-import org.apache.hop.pipeline.transform.ITransformMeta;
 import org.apache.hop.pipeline.transform.TransformMeta;
 import org.apache.hop.core.xml.XmlHandler;
 import org.apache.hop.i18n.BaseMessages;
-import org.phalanxdev.hop.ui.pipeline.pmi.PMIScoringDialog;
 import org.w3c.dom.Node;
 import weka.core.Attribute;
 import weka.core.Instances;
@@ -49,7 +44,7 @@ import java.io.ObjectOutputStream;
  * @version $Revision: $
  */
 @Transform( id = "PMIScoring", image = "WEKAS.svg", name = "PMI Scoring", description = "Score or evaluate a PMI model", categoryDescription = "PMI" )
-public class PMIScoringMeta extends BaseTransformMeta implements ITransformMeta<PMIScoring, PMIScoringData> {
+public class PMIScoringMeta extends BaseTransformMeta<PMIScoring, PMIScoringData>{
 
   public static Class<?> PKG = PMIScoringMeta.class;
 
@@ -902,19 +897,5 @@ public class PMIScoringMeta extends BaseTransformMeta implements ITransformMeta<
   @Override public void setDefault() {
     m_modelFileName = null;
     m_outputProbabilities = false;
-  }
-
-  @Override
-  public ITransform createTransform( TransformMeta transformMeta, PMIScoringData pmiScoringData, int copyNr, PipelineMeta pipelineMeta,
-      Pipeline pipeline ) {
-    return new PMIScoring( transformMeta, this, pmiScoringData, copyNr, pipelineMeta, pipeline );
-  }
-
-  @Override public PMIScoringData getTransformData() {
-    return new PMIScoringData();
-  }
-
-  @Override public String getDialogClassName() {
-    return PMIScoringDialog.class.getCanonicalName();
   }
 }

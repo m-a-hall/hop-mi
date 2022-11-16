@@ -18,6 +18,7 @@ package org.phalanxdev.hop.pipeline.transforms.pmi;
 import org.apache.hop.core.exception.HopException;
 import org.apache.hop.core.row.IValueMeta;
 import org.apache.hop.core.row.RowMeta;
+import org.apache.hop.pipeline.transform.stream.IStream;
 import org.phalanxdev.hop.utils.ArffMeta;
 import org.apache.hop.i18n.BaseMessages;
 import org.apache.hop.pipeline.Pipeline;
@@ -25,7 +26,6 @@ import org.apache.hop.pipeline.PipelineMeta;
 import org.apache.hop.pipeline.transform.BaseTransform;
 import org.apache.hop.pipeline.transform.ITransform;
 import org.apache.hop.pipeline.transform.TransformMeta;
-import org.apache.hop.pipeline.transform.errorhandling.IStream;
 import org.phalanxdev.hop.pipeline.transforms.reservoirsampling.ReservoirSamplingData;
 import org.phalanxdev.mi.Evaluator;
 import org.phalanxdev.mi.PMIEngine;
@@ -41,8 +41,7 @@ import java.util.List;
  *
  * @author Mark Hall (mhall{[at]}waikato{[dot]}ac{[dot]}nz)
  */
-public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, BaseSupervisedPMIData>
-    implements ITransform<BaseSupervisedPMIMeta, BaseSupervisedPMIData> {
+public class BaseSupervisedPMI extends BaseTransform<BaseSupervisedPMIMeta, BaseSupervisedPMIData>{
 
   private static Class<?> PKG = BaseSupervisedPMIMeta.class;
 
