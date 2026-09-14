@@ -898,4 +898,9 @@ public class PMIScoringMeta extends BaseTransformMeta<PMIScoring, PMIScoringData
     m_modelFileName = null;
     m_outputProbabilities = false;
   }
+
+  @Override
+  public String getDialogClassName() {
+    return "org.phalanxdev.hop.ui.pipeline.pmi.PMIScoringDialog";
+  }
 }

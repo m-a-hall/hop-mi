@@ -18,10 +18,12 @@ package org.phalanxdev.hop.pipeline.transforms.pmi.weka;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
+
+import org.apache.commons.vfs2.FileObject;
+import org.apache.hop.core.vfs.HopVfs;
 
 import org.apache.hop.core.CheckResult;
 import org.apache.hop.core.ICheckResult;
@@ -55,7 +57,12 @@ import weka.core.SerializedObject;
  * @author Mark Hall (mhall{[at]}waikato{[dot]}ac{[dot]}nz)
  * @version $Revision$
  */
-@Transform( id = "PMIForecasting", image = "WEKAS.svg", documentationUrl = "http://wiki.pentaho.com/display/EAI/Weka+Forecasting", name = "PMI Forecasting", description = "This step makes time series forecasts from a pre-built WEKA forecasting model", categoryDescription = "PMI" )
+@Transform(
+    id = "PMIForecasting",
+    image = "WEKAS.svg",
+    name = "PMI Forecasting",
+    description = "This step makes time series forecasts from a pre-built WEKA forecasting model",
+    categoryDescription = "PMI" )
 public class PMIForecastingMeta extends BaseTransformMeta<PMIForecasting, PMIForecastingData> {
 
   public static Class<?> PKG = PMIForecastingMeta.class;
@@ -467,7 +474,7 @@ public class PMIForecastingMeta extends BaseTransformMeta<PMIForecasting, PMIFor
   }
 
   protected void loadModelFile() throws Exception {
-    File modelFile = new File( m_modelFileName );
+    FileObject modelFile = HopVfs.getFileObject( m_modelFileName );
     if ( modelFile.exists() ) {
       logBasic( "loading model from file." );
       m_model = PMIForecastingData.loadSerializedModel( modelFile, getLog() );
@@ -511,25 +518,15 @@ public class PMIForecastingMeta extends BaseTransformMeta<PMIForecasting, PMIFor
 
       String modName = getSerializedModelFileName();
       modName = space.resolve( modName );
-      File modelFile = null;
-      if ( modName.startsWith( "file:" ) ) {
-        try {
-          modelFile = new File( new java.net.URI( modName ) );
-        } catch ( Exception ex ) {
-          throw new HopTransformException( "Malformed URI for model file" );
-        }
-      } else {
-        modelFile = new File( modName );
-      }
-      if ( !modelFile.exists() ) {
-        throw new HopTransformException( "Serialized model file does " + "not exist on disk!" );
-      }
-
       try {
+        FileObject modelFile = HopVfs.getFileObject( modName, space );
+        if ( !modelFile.exists() ) {
+          throw new HopTransformException( "Serialized model file does not exist on disk: " + modName );
+        }
         WekaForecastingModel model = PMIForecastingData.loadSerializedModel( modelFile, getLog() );
         setModel( model );
       } catch ( Exception ex ) {
-        throw new HopTransformException( "Problem de-serializing model file" );
+        throw new HopTransformException( "Problem de-serializing model file: " + modName, ex );
       }
     }
 
@@ -644,12 +641,16 @@ public class PMIForecastingMeta extends BaseTransformMeta<PMIForecasting, PMIFor
 
     if ( m_model == null ) {
       if ( !org.apache.hop.core.util.Utils.isEmpty( m_modelFileName ) ) {
-        File f = new File( m_modelFileName );
-        if ( !f.exists() ) {
-          cr =
-              new CheckResult( CheckResult.TYPE_RESULT_ERROR, "Step does not have access to a " + "usable model!",
-                  stepMeta );
-          remarks.add( cr );
+        try {
+          FileObject f = HopVfs.getFileObject( variables.resolve( m_modelFileName ), variables );
+          if ( !f.exists() ) {
+            cr =
+                new CheckResult( CheckResult.TYPE_RESULT_ERROR, "Transform does not have access to a usable model!",
+                    stepMeta );
+            remarks.add( cr );
+          }
+        } catch ( Exception ex ) {
+          // ignore
         }
       }
     }

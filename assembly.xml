@@ -34,6 +34,8 @@
 	<include>timeseriesForecasting-${weka.timeseries.version}.jar</include>
 	<include>xpp3_min-${xpp-min.version}.jar</include>
 	<include>libmi-${libmi.version}.jar</include>
+	<include>mtj-*.jar</include>
+	<include>netlib-java-*.jar</include>
       </includes>
     </fileSet>
     <fileSet>

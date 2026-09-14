@@ -37,6 +37,8 @@ import org.phalanxdev.hop.utils.VariablesAdapter;
 import org.phalanxdev.mi.Evaluator;
 import org.phalanxdev.mi.PMIEngine;
 import org.phalanxdev.mi.Scheme;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.hop.core.vfs.HopVfs;
 import weka.classifiers.Classifier;
 import weka.classifiers.IterativeClassifier;
 import weka.classifiers.UpdateableClassifier;
@@ -50,7 +52,8 @@ import weka.core.OptionHandler;
 import weka.core.SerializationHelper;
 import weka.core.Utils;
 
-import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -868,18 +871,6 @@ public class BaseSupervisedPMIData extends BaseTransformData implements ITransfo
       return;
     }
 
-    if (m_modelOutputPath.toLowerCase().startsWith("file:")) {
-      try {
-        m_modelOutputPath = m_modelOutputPath.replace(" ", "%20");
-        File updatedPath = new File(new java.net.URI(m_modelOutputPath));
-        m_modelOutputPath = updatedPath.toString();
-      } catch (Exception ex) {
-        throw new HopException(
-            BaseMessages
-                .getString(PKG, "BasePMIStep.Error.MalformedURIForModelPath", m_modelOutputPath));
-      }
-    }
-
     String fileName =
         org.apache.hop.core.util.Utils.isEmpty(m_modelFileName) ? "model" : m_modelFileName;
     if (m_rowHandlingMode == Stratified) {
@@ -889,23 +880,22 @@ public class BaseSupervisedPMIData extends BaseTransformData implements ITransfo
       m_batchCount++;
     }
 
-    File directory = new File(m_modelOutputPath);
-    if (directory.exists() && directory.isFile()) {
-      throw new HopException(
-          BaseMessages.getString(PKG, "BasePMIStep.Error.ModelOutputDirectoryIsNotADirectory",
-              m_modelOutputPath));
-    }
-    if (!directory.exists()) {
-      if (!directory.mkdirs()) {
-        throw new HopException(BaseMessages
-            .getString(PKG, "BasePMIStep.Error.WasUnableToCreateOutputDirectoryForModels",
+    try {
+      FileObject directory = HopVfs.getFileObject(m_modelOutputPath);
+      if (directory.exists() && !directory.isFolder()) {
+        throw new HopException(
+            BaseMessages.getString(PKG, "BasePMIStep.Error.ModelOutputDirectoryIsNotADirectory",
                 m_modelOutputPath));
       }
-    }
-    try {
+      if (!directory.exists()) {
+        directory.createFolder();
+      }
+
+      FileObject targetFile = directory.resolveFile(fileName);
       log.logBasic(BaseMessages
           .getString(PKG, "BasePMIStep.Info.SavingModel", model.getClass().getCanonicalName(),
-              m_modelOutputPath + File.separator + fileName));
+              targetFile.getName().getURI()));
+
       // if there is actual data, then also serialize an Evaluation object (for training priors)
       Evaluation eval = null;
       if (header.numInstances() > 0) {
@@ -913,29 +903,29 @@ public class BaseSupervisedPMIData extends BaseTransformData implements ITransfo
         header = new Instances(header, 0);
         log.logDetailed("Storing training data class priors with saved model");
       }
-      SerializationHelper.writeAll(m_modelOutputPath + File.separator + fileName,
-          (eval == null ? new Object[]{model, header} : new Object[]{model, header, eval}));
+      Object[] toSave =
+          eval == null ? new Object[]{model, header} : new Object[]{model, header, eval};
+      try (OutputStream os = HopVfs.getOutputStream(targetFile, false)) {
+        SerializationHelper.writeAll(os, toSave);
+      }
     } catch (Exception e) {
       throw new HopException(e);
     }
   }
 
   public static List<Object> loadModel(String modelPath, ILogChannel log) throws HopException {
-    if (modelPath.toLowerCase().startsWith("file:")) {
-      try {
-        modelPath = modelPath.replace(" ", "%20");
-        File updatedPath = new File(new java.net.URI(modelPath));
-        modelPath = updatedPath.toString();
-      } catch (Exception ex) {
-        throw new HopException(
-            BaseMessages.getString(PKG, "BasePMIStep.Error.MalformedURIForModelPath", modelPath));
-      }
-    }
+    return loadModel(modelPath, null, log);
+  }
 
-    log.logBasic(BaseMessages.getString(PKG, "BasePMIStep.Info.LoadingResumableModel", modelPath));
+  public static List<Object> loadModel(String modelPath, IVariables variables, ILogChannel log)
+      throws HopException {
+    String resolvedPath = variables != null ? variables.resolve(modelPath) : modelPath;
+    if (log != null) {
+      log.logBasic(BaseMessages.getString(PKG, "BasePMIStep.Info.LoadingResumableModel", resolvedPath));
+    }
     Object[] loaded = null;
-    try {
-      loaded = SerializationHelper.readAll(modelPath);
+    try (InputStream is = HopVfs.getInputStream(resolvedPath)) {
+      loaded = SerializationHelper.readAll(is);
     } catch (Exception e) {
       throw new HopException(e);
     }

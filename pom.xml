@@ -4,16 +4,19 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.phalanxdev</groupId>
   <artifactId>hop-machine-intelligence</artifactId>
-  <version>2.4.0-SNAPSHOT</version>
+  <version>2.20.0-SNAPSHOT</version>
   <name>Machine Intelligence for Apache Hop</name>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.target>11</maven.compiler.target>
-    <maven.compiler.source>11</maven.compiler.source>
-    <hop.version>2.4.0-SNAPSHOT</hop.version>
+    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.source>21</maven.compiler.source>
+    <hop.version>2.20.0-SNAPSHOT</hop.version>
+    <lombok.version>1.18.46</lombok.version>
+    <jandex.version>3.6.0</jandex.version>
+    <junit.version>5.10.2</junit.version>
     <!-- <weka.version>3.8.3.1</weka.version> -->
-    <weka.version>3.8.6</weka.version>
+    <weka.version>3.8.7</weka.version>
     <weka.timeseries.version>1.1.27</weka.timeseries.version>
     <weka.kfkettle.version>1.0.5</weka.kfkettle.version>
     <libmi.version>1.0</libmi.version>
@@ -23,6 +26,12 @@
   </properties>
   
   <dependencies>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>org.apache.hop</groupId>
       <artifactId>hop-engine</artifactId>
@@ -39,12 +48,6 @@
       <groupId>org.apache.hop</groupId>
       <artifactId>hop-ui</artifactId>
       <version>${hop.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.swt</groupId>
-      <artifactId>org.eclipse.swt.win32.win32.x86_64</artifactId>
-      <version>4.3</version>
       <scope>provided</scope>
     </dependency>
 
@@ -78,11 +81,22 @@
       <groupId>nz.ac.waikato.cms.weka</groupId>
       <artifactId>timeseriesForecasting</artifactId>
       <version>${weka.timeseries.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>nz.ac.waikato.cms.weka</groupId>
+          <artifactId>weka-dev</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>nz.ac.waikato.cms.weka</groupId>
       <artifactId>kfKettle</artifactId>
       <version>${weka.kfkettle.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.matrix-toolkits-java</groupId>
+      <artifactId>mtj</artifactId>
+      <version>1.0.4</version>
     </dependency>
     <dependency>
       <groupId>xpp3</groupId>
@@ -91,11 +105,11 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.13.2</version>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
       <scope>test</scope>
-    </dependency>    
+    </dependency>
   </dependencies>
 
   <repositories>
@@ -187,19 +201,39 @@
       </plugin>
 
       <plugin>
-	<groupId>org.jboss.jandex</groupId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.12.1</version>
+        <configuration>
+          <source>21</source>
+          <target>21</target>
+          <release>21</release>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+              <version>${lombok.version}</version>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.2.5</version>
+      </plugin>
+
+      <plugin>
+	<groupId>io.smallrye</groupId>
 	<artifactId>jandex-maven-plugin</artifactId>
-	<version>1.0.8</version>
+	<version>${jandex.version}</version>
 	<executions>
           <execution>
           <id>make-index</id>
           <goals>
             <goal>jandex</goal>
           </goals>
-          <!-- phase is 'process-classes by default' -->
-          <configuration>
-            <!-- Nothing needed here for simple cases -->
-          </configuration>
           </execution>
 	  </executions>
       </plugin>

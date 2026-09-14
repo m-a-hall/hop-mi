@@ -438,17 +438,7 @@ public class PMIFlowExecutorData extends BaseTransformData implements ITransform
   }
 
   public static Flow getFlowFromFile( String fileName, IVariables vars ) throws Exception {
-    if ( !org.apache.hop.core.util.Utils.isEmpty( fileName ) ) {
-      File flowFile = pathToURI( fileName, vars );
-
-      if ( flowFile != null && flowFile.exists() ) {
-        return Flow.loadFlow( flowFile, new FlowRunner.SimpleLogger() );
-      } else {
-        throw new Exception( "Flow '" + fileName + "' does not seem to exist!" );
-      }
-    } else {
-      throw new Exception( "Filename is empty!" );
-    }
+    return getFlowFromFileVFS( fileName, vars, Environment.getSystemWide() );
   }
 
   // TODO plumb Apache Hop log wrapper through to here

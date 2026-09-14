@@ -110,7 +110,7 @@ public class SupervisedEvaluator extends BaseTransform<SupervisedEvaluatorMeta, 
       setOutputDone();
       return false;
     } else {
-      m_data.m_evaluatorUtil.evaluateForRow( getInputRowMeta(), inputRow, m_meta.getOutputAUC(), log );
+      m_data.m_evaluatorUtil.evaluateForRow( getInputRowMeta(), inputRow, m_meta.getOutputAUC(), getLogChannel() );
     }
 
     if ( checkFeedback( getLinesRead() ) ) {

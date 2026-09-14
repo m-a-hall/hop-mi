@@ -15,7 +15,8 @@
 
 package org.phalanxdev.hop.pipeline.transforms.pmi.weka;
 
-import java.io.File;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.hop.core.vfs.HopVfs;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -112,30 +113,17 @@ public class PMIForecasting extends BaseTransform<PMIForecastingMeta, PMIForecas
 
   private WekaForecastingModel setModel( String modelFileName ) throws HopException {
     String modName = resolve( modelFileName );
-    File modelFile = null;
-    if ( modName.startsWith( "file:" ) ) {
-      try {
-        modName = modName.replace( " ", "%20" );
-        modelFile = new File( new java.net.URI( modName ) );
-      } catch ( Exception ex ) {
-        throw new HopException( "Malformed URI for model file" );
-      }
-    } else {
-      modelFile = new File( modName );
-    }
-    if ( !modelFile.exists() ) {
-      throw new HopException( "Serialized model file does " + "not exist on disk!" );
-    }
-
-    // Load the model
-    WekaForecastingModel model = null;
     try {
-      model = PMIForecastingData.loadSerializedModel( modelFile, m_log );
+      FileObject modelFile = HopVfs.getFileObject( modName, this );
+      if ( !modelFile.exists() ) {
+        throw new HopException( "Serialized model file does not exist: " + modName );
+      }
+      WekaForecastingModel model = PMIForecastingData.loadSerializedModel( modelFile, m_log );
       m_meta.setModel( model );
+      return model;
     } catch ( Exception ex ) {
-      throw new HopException( "Problem de-serializing model " + "file!" );
+      throw new HopException( "Problem de-serializing model file: " + modName, ex );
     }
-    return model;
   }
 
   protected List<Object[]> m_overlayData;
@@ -231,22 +219,11 @@ public class PMIForecasting extends BaseTransform<PMIForecastingMeta, PMIForecas
       if ( m_rebuildModel && !org.apache.hop.core.util.Utils.isEmpty( m_meta.getSavedForecasterFileName() ) ) {
         try {
           String modName = resolve( m_meta.getSavedForecasterFileName() );
-
-          File updatedModelFile = null;
-          if ( modName.startsWith( "file:" ) ) {
-            try {
-              modName = modName.replace( " ", "%20" );
-              updatedModelFile = new File( new java.net.URI( modName ) );
-            } catch ( Exception ex ) {
-              throw new HopException( "Malformed URI for updated forecaster file" );
-            }
-          } else {
-            updatedModelFile = new File( modName );
-          }
-          logBasic( "Saving forecaster to file \"" + updatedModelFile + "\"" );
+          FileObject updatedModelFile = HopVfs.getFileObject( modName, this );
+          logBasic( "Saving forecaster to file \"" + updatedModelFile.getName().getURI() + "\"" );
           PMIForecastingData.saveSerializedModel( m_meta.getModel(), updatedModelFile );
         } catch ( Exception ex ) {
-          throw new HopException( "Problem saving updated forecaster to file!" );
+          throw new HopException( "Problem saving updated forecaster to file!", ex );
         }
       }
 
@@ -500,8 +477,8 @@ public class PMIForecasting extends BaseTransform<PMIForecastingMeta, PMIForecas
       }
     }
 
-    if ( log.isRowLevel() ) {
-      log.logRowlevel( toString(), "Read row #" + getLinesRead() + " : " + r );
+    if ( isRowLevel() ) {
+      logRowlevel( "Read row #" + getLinesRead() + " : " + r );
     }
 
     if ( checkFeedback( getLinesRead() ) ) {

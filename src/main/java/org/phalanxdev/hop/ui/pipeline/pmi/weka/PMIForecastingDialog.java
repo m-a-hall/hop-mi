@@ -15,9 +15,10 @@
 
 package org.phalanxdev.hop.ui.pipeline.pmi.weka;
 
-import java.io.File;
-
+import org.apache.commons.vfs2.FileObject;
 import org.apache.hop.core.Props;
+import org.apache.hop.core.vfs.HopVfs;
+import org.apache.hop.ui.core.dialog.BaseDialog;
 import org.apache.hop.core.exception.HopException;
 import org.apache.hop.core.row.IRowMeta;
 import org.apache.hop.core.row.IValueMeta;
@@ -51,7 +52,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -523,73 +523,34 @@ public class PMIForecastingDialog extends BaseTransformDialog implements ITransf
 
     m_saveForecasterBut.addSelectionListener( new SelectionAdapter() {
       @Override public void widgetSelected( SelectionEvent e ) {
-        FileDialog dialog = new FileDialog( shell, SWT.SAVE );
-        String[] extensions = null;
-        String[] filterNames = null;
-
-        extensions = new String[2];
-        filterNames = new String[2];
+        String[] extensions = new String[2];
+        String[] filterNames = new String[2];
         extensions[0] = "*.model";
         filterNames[0] =
             BaseMessages.getString( PMIForecastingMeta.PKG, "PMIForecastingDialog.FileType.ModelFileBinary" );
         extensions[1] = "*";
         filterNames[1] = BaseMessages.getString( PMIForecastingMeta.PKG, "System.FileType.AllFiles" );
 
-        dialog.setFilterExtensions( extensions );
-
-        if ( m_saveForecasterField.getText() != null ) {
-          dialog.setFileName( variables.resolve( m_saveForecasterField.getText() ) );
-        }
-        dialog.setFilterNames( filterNames );
-
-        if ( dialog.open() != null ) {
-          m_saveForecasterField
-              .setText( dialog.getFileName() + System.getProperty( "file.separator" ) + dialog.getFileName() );
-        }
+        BaseDialog.presentFileDialog( true, shell, m_saveForecasterField, variables, extensions, filterNames, true );
       }
     } );
 
     m_wbFilename.addSelectionListener( new SelectionAdapter() {
       @Override public void widgetSelected( SelectionEvent e ) {
-        FileDialog dialog = new FileDialog( shell, SWT.OPEN );
-        String[] extensions = null;
-        String[] filterNames = null;
-
-        extensions = new String[2];
-        filterNames = new String[2];
+        String[] extensions = new String[2];
+        String[] filterNames = new String[2];
         extensions[0] = "*.model";
         filterNames[0] =
             BaseMessages.getString( PMIForecastingMeta.PKG, "PMIForecastingDialog.FileType.ModelFileBinary" );
         extensions[1] = "*";
         filterNames[1] = BaseMessages.getString( PMIForecastingMeta.PKG, "System.FileType.AllFiles" );
 
-        dialog.setFilterExtensions( extensions );
-        if ( m_wFilename.getText() != null ) {
-          dialog.setFileName( variables.resolve( m_wFilename.getText() ) );
-        }
-        dialog.setFilterNames( filterNames );
-
-        if ( dialog.open() != null ) {
-          /*
-           * String extension = m_wExtension.getText(); if (extension != null &&
-           * dialog.getFileName() != null && dialog.getFileName().endsWith("." +
-           * extension)) { // The extension is filled in and matches the end //
-           * of the selected file => Strip off the extension.
-           */
-          // String fileName = dialog.getFileName();
-          /*
-           * m_wFilename. setText(dialog.getFilterPath() +
-           * System.getProperty("file.separator") + fileName.substring(0,
-           * fileName.length() - (extension.length() + 1))); } else {
-           */
-          m_wFilename.setText( dialog.getFilterPath() + System.getProperty( "file.separator" ) + dialog.getFileName() );
-          // }
-
+        String selectedFile = BaseDialog.presentFileDialog( shell, m_wFilename, variables, extensions, filterNames, true );
+        if ( selectedFile != null ) {
           // try to load model file and display model
           if ( !loadModel() ) {
             log.logError(
                 BaseMessages.getString( PMIForecastingMeta.PKG, "PMIForecastingDialog.Log.FileLoadingError" ) );
-            // System.err.println("Problem loading model file!");
           } else {
             checkIfModelIsUsingArtificialTimeStamp( m_currentMeta.getModel() );
             checkIfModelIsUsingOverlayData( m_currentMeta.getModel() );
@@ -624,23 +585,17 @@ public class PMIForecastingDialog extends BaseTransformDialog implements ITransf
       return false;
     }
     String modName = variables.resolve( filename );
-    File modelFile = null;
-    if ( modName.startsWith( "file:" ) ) {
-      try {
-        modName = modName.replace( " ", "%20" );
-        modelFile = new File( new java.net.URI( modName ) );
-      } catch ( Exception ex ) {
-        // System.err.println("Malformed URI");
-        log.logError( BaseMessages.getString( PMIForecastingMeta.PKG, "PMIForecastingDialog.Log.MalformedURI" ) );
-        return false;
-      }
-    } else {
-      modelFile = new File( modName );
+    FileObject modelFile = null;
+    try {
+      modelFile = HopVfs.getFileObject( modName );
+    } catch ( Exception ex ) {
+      log.logError( BaseMessages.getString( PMIForecastingMeta.PKG, "PMIForecastingDialog.Log.MalformedURI" ), ex );
+      return false;
     }
     boolean success = false;
 
-    if ( !org.apache.hop.core.util.Utils.isEmpty( filename ) && modelFile.exists() ) {
-      try {
+    try {
+      if ( !org.apache.hop.core.util.Utils.isEmpty( filename ) && modelFile.exists() ) {
         WekaForecastingModel tempM = PMIForecastingData.loadSerializedModel( modelFile, log );
         m_wModelText.setText( tempM.toString() );
 
@@ -655,10 +610,9 @@ public class PMIForecastingDialog extends BaseTransformDialog implements ITransf
         // mappings
         mappingString( tempM );
         success = true;
-      } catch ( Exception ex ) {
-        log.logError( BaseMessages.getString( PMIForecastingMeta.PKG, "PMIForecastingDialog.Log.FileLoadingError" ) );
-        // System.err.println("Problem loading model file...");
       }
+    } catch ( Exception ex ) {
+      log.logError( BaseMessages.getString( PMIForecastingMeta.PKG, "PMIForecastingDialog.Log.FileLoadingError" ), ex );
     }
 
     return success;

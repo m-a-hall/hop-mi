@@ -37,6 +37,9 @@ import org.phalanxdev.mi.PMIEngine;
 import org.phalanxdev.mi.Scheme;
 import org.phalanxdev.mi.SchemeUtils;
 import org.phalanxdev.mi.UnsupportedEngineException;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.hop.core.vfs.HopVfs;
+import org.apache.hop.ui.core.dialog.BaseDialog;
 import org.apache.hop.ui.core.dialog.ErrorDialog;
 import org.apache.hop.ui.core.dialog.ShowMessageDialog;
 import org.apache.hop.ui.core.widget.ColumnInfo;
@@ -59,10 +62,8 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -78,9 +79,7 @@ import weka.filters.unsupervised.attribute.MergeInfrequentNominalValues;
 import weka.filters.unsupervised.attribute.RemoveUseless;
 import weka.filters.unsupervised.attribute.StringToWordVector;
 
-import java.io.File;
 import java.lang.reflect.Array;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -1110,33 +1109,7 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
     m_browseModelOutputDirectoryButton.addSelectionListener( new SelectionAdapter() {
       @Override public void widgetSelected( SelectionEvent selectionEvent ) {
         super.widgetSelected( selectionEvent );
-        DirectoryDialog dialog = new DirectoryDialog( shell, SWT.SAVE );
-
-        if ( !org.apache.hop.core.util.Utils.isEmpty( m_modelOutputDirectoryField.getText() ) ) {
-          boolean ok = false;
-          String outputDir = variables.resolve( m_modelOutputDirectoryField.getText() );
-          File updatedPath = null;
-          if ( outputDir.toLowerCase().startsWith( "file:" ) ) {
-            outputDir = outputDir.replace( " ", "%20" );
-            try {
-              updatedPath = new File( new java.net.URI( outputDir ) );
-              ok = true;
-            } catch ( URISyntaxException e ) {
-              e.printStackTrace();
-            }
-          } else {
-            updatedPath = new File( outputDir );
-            ok = true;
-          }
-          if ( ok && updatedPath.exists() && updatedPath.isDirectory() ) {
-            dialog.setFilterPath( updatedPath.toString() );
-          }
-        }
-
-        String selectedDirectory = dialog.open();
-        if ( selectedDirectory != null ) {
-          m_modelOutputDirectoryField.setText( selectedDirectory );
-        }
+        BaseDialog.presentDirectoryDialog( shell, m_modelOutputDirectoryField, variables );
       }
     } );
     lastControl = m_modelOutputDirectoryField;
@@ -2016,41 +1989,29 @@ public class BaseSupervisedPMIDialog extends BaseTransformDialog implements ITra
         m_browseLoadModelButton.addSelectionListener( new SelectionAdapter() {
           @Override public void widgetSelected( SelectionEvent selectionEvent ) {
             super.widgetSelected( selectionEvent );
-            FileDialog dialog = new FileDialog( shell, SWT.OPEN );
-
-            String modelPath = dialog.open();
-            boolean ok = false;
-            File updatedModelPath = null;
-            if ( !org.apache.hop.core.util.Utils.isEmpty( modelPath ) && modelPath.toLowerCase()
-                .startsWith( "file:" ) ) {
-              modelPath = modelPath.replace( " ", "%20" );
-
+            String[] extensions = new String[] { "*.model", "*" };
+            String[] filterNames = new String[] {
+                BaseMessages.getString( PKG, "BasePMIStepDialog.FileType.ModelFileBinary" ),
+                BaseMessages.getString( PKG, "System.FileType.AllFiles" )
+            };
+            String modelPath = BaseDialog.presentFileDialog( shell, m_modelLoadField, variables, extensions, filterNames, true );
+            if ( !org.apache.hop.core.util.Utils.isEmpty( modelPath ) ) {
               try {
-                updatedModelPath = new File( new java.net.URI( modelPath ) );
-                ok = true;
-              } catch ( URISyntaxException e ) {
-                e.printStackTrace();
-              }
-            } else {
-              updatedModelPath = new File( modelPath );
-              ok = true;
-            }
-            if ( ok && updatedModelPath.exists() && updatedModelPath.isFile() ) {
-              if ( log != null ) {
-                log.logBasic( "Loading/checking model: " + updatedModelPath.toString() );
-                try {
-                  List<Object> loaded = BaseSupervisedPMIData.loadModel( updatedModelPath.toString(), log );
-                  m_modelLoadField.setText( updatedModelPath.toString() );
+                FileObject fileObject = HopVfs.getFileObject( variables.resolve( modelPath ) );
+                if ( fileObject.exists() && fileObject.isFile() ) {
+                  if ( log != null ) {
+                    log.logBasic( "Loading/checking model: " + modelPath );
+                  }
+                  List<Object> loaded = BaseSupervisedPMIData.loadModel( modelPath, variables, log );
 
                   // Apply loaded model options to dialog
                   m_scheme.setConfiguredScheme( loaded.get( 0 ) );
                   m_topLevelSchemeInfo = m_scheme.getSchemeInfo();
 
                   buildPropertySheet();
-                } catch ( Exception e ) {
-                  // TODO popup error dialog
-                  e.printStackTrace();
                 }
+              } catch ( Exception e ) {
+                new ErrorDialog( shell, transformName, "Error loading model", e );
               }
             }
           }

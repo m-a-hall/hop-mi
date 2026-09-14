@@ -44,7 +44,6 @@ import weka.core.xml.XStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -358,23 +357,27 @@ public class PMIScoringData extends BaseTransformData implements ITransformData 
     return wsm;
   }
 
-  public static void saveSerializedModel(PMIScoringModel wsm, File saveTo) throws Exception {
+  public static void saveSerializedModel(PMIScoringModel wsm, FileObject saveTo) throws Exception {
 
     Object model = wsm.getModel();
     Instances header = wsm.getHeader();
     header =
         header
             .stringFreeStructure(); // make sure we don't serialize any string/relational values into the model file
-    OutputStream os = new FileOutputStream(saveTo);
+    OutputStream os = HopVfs.getOutputStream(saveTo, false);
 
-    if (saveTo.getName().toLowerCase().endsWith(".gz")) { //$NON-NLS-1$
+    if (saveTo.getName().getBaseName().toLowerCase().endsWith(".gz")) { //$NON-NLS-1$
       os = new GZIPOutputStream(os);
     }
-    ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(os));
+    try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(os))) {
+      oos.writeObject(model);
+      oos.writeObject(header);
+      oos.flush();
+    }
+  }
 
-    oos.writeObject(model);
-    oos.writeObject(header);
-    oos.close();
+  public static void saveSerializedModel(PMIScoringModel wsm, File saveTo) throws Exception {
+    saveSerializedModel(wsm, HopVfs.getFileObject(saveTo.getAbsolutePath()));
   }
 
   /**

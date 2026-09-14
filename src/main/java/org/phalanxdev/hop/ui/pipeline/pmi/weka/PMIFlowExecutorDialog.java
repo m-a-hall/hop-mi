@@ -30,6 +30,9 @@ import org.apache.hop.pipeline.transform.ITransformDialog;
 import org.apache.hop.pipeline.transform.TransformMeta;
 import org.phalanxdev.hop.pipeline.transforms.pmi.weka.PMIFlowExecutorData;
 import org.phalanxdev.hop.pipeline.transforms.pmi.weka.PMIFlowExecutorMeta;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.hop.core.vfs.HopVfs;
+import org.apache.hop.ui.core.dialog.BaseDialog;
 import org.apache.hop.ui.core.dialog.ErrorDialog;
 import org.apache.hop.ui.core.widget.ColumnInfo;
 import org.apache.hop.ui.core.widget.TableView;
@@ -54,7 +57,6 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
@@ -73,7 +75,6 @@ import weka.knowledgeflow.JSONFlowUtils;
 import weka.knowledgeflow.StepManager;
 
 import java.awt.BorderLayout;
-import java.io.File;
 import java.io.StringReader;
 import java.util.List;
 
@@ -880,32 +881,15 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
 
     m_wbFilename.addSelectionListener( new SelectionAdapter() {
       @Override public void widgetSelected( SelectionEvent e ) {
-        FileDialog dialog = new FileDialog( shell, SWT.OPEN );
-        String[] extensions = null;
-        String[] filterNames = null;
+        String[] extensions = new String[] { "*.kf", "*.kfml", "*" };
+        String[] filterNames = new String[] {
+            BaseMessages.getString( PMIFlowExecutorMeta.PKG, "KnowledgeFlowDialog.FileType.FlowFileJSON" ),
+            BaseMessages.getString( PMIFlowExecutorMeta.PKG, "KnowledgeFlowDialog.FileType.FlowFileLegacyXML" ),
+            BaseMessages.getString( PMIFlowExecutorMeta.PKG, "System.FileType.AllFiles" )
+        };
 
-        extensions = new String[3];
-        filterNames = new String[3];
-
-        extensions[0] = "*.kf"; //$NON-NLS-1$
-        filterNames[0] = BaseMessages.getString( PMIFlowExecutorMeta.PKG, "KnowledgeFlowDialog.FileType.FlowFileJSON" );
-        extensions[1] = "*.kfml";
-        filterNames[01] =
-            BaseMessages.getString( PMIFlowExecutorMeta.PKG, "KnowledgeFlowDialog.FileType.FlowFileLegacyXML" );
-        extensions[2] = "*";
-        filterNames[2] = BaseMessages.getString( PMIFlowExecutorMeta.PKG, "System.FileType.AllFiles" );
-
-        dialog.setFilterExtensions( extensions );
-        if ( m_wFilename.getText() != null ) {
-          dialog.setFileName( variables.resolve( m_wFilename.getText() ) );
-        }
-        dialog.setFilterNames( filterNames );
-
-        if ( dialog.open() != null ) {
-
-          m_wFilename.setText(
-              dialog.getFilterPath() + System.getProperty( "file.separator" ) + dialog.getFileName() ); //$NON-NLS-1$
-
+        String selectedFile = BaseDialog.presentFileDialog( shell, m_wFilename, variables, extensions, filterNames, true );
+        if ( selectedFile != null ) {
           // try to load model file and display model
           if ( !loadFlow() ) {
             if ( !Utils.isEmpty( m_wFilename.getText() ) ) {
@@ -1435,9 +1419,10 @@ public class PMIFlowExecutorDialog extends BaseTransformDialog implements ITrans
       m_kfPerspective.getCurrentLayout().setFlow( loadedFlow );
       m_currentFlow = loadedFlow;
       filename = variables.resolve( filename );
-      File flowF = PMIFlowExecutorData.pathToURI( filename, variables );
-      if ( flowF != null ) {
-        m_env.addVariable( KFGUIConsts.FLOW_DIRECTORY_KEY, flowF.getParent() );
+      FileObject fo = HopVfs.getFileObject( filename, variables );
+      if ( fo != null && fo.getParent() != null ) {
+        String parent = fo.getParent().toString().replace( "file://", "" );
+        m_env.addVariable( KFGUIConsts.FLOW_DIRECTORY_KEY, parent );
       }
       success = true;
     } catch ( Exception ex ) {

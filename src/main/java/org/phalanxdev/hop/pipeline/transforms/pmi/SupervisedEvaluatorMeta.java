@@ -15,92 +15,120 @@
 
 package org.phalanxdev.hop.pipeline.transforms.pmi;
 
-import org.phalanxdev.hop.ui.pipeline.pmi.SupervisedEvaluatorDialog;
-import org.phalanxdev.hop.MetaHelper;
-import org.phalanxdev.hop.SimpleStepOption;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.hop.core.annotations.Transform;
 import org.apache.hop.core.exception.HopException;
 import org.apache.hop.core.exception.HopTransformException;
+import org.apache.hop.core.gui.plugin.GuiElementType;
+import org.apache.hop.core.gui.plugin.GuiPlugin;
+import org.apache.hop.core.gui.plugin.GuiWidgetElement;
+import org.apache.hop.core.gui.plugin.GuiWidgetGroupType;
 import org.apache.hop.core.row.IRowMeta;
 import org.apache.hop.core.variables.IVariables;
+import org.apache.hop.metadata.api.HopMetadataProperty;
 import org.apache.hop.metadata.api.IHopMetadataProvider;
-import org.apache.hop.pipeline.Pipeline;
-import org.apache.hop.pipeline.PipelineMeta;
 import org.apache.hop.pipeline.transform.BaseTransformMeta;
-import org.apache.hop.pipeline.transform.ITransform;
-import org.apache.hop.pipeline.transform.ITransformMeta;
 import org.apache.hop.pipeline.transform.TransformMeta;
-import org.w3c.dom.Node;
+import org.phalanxdev.hop.ui.pipeline.pmi.SupervisedEvaluatorDialog;
 import weka.core.Attribute;
 
 import java.util.Arrays;
 
 /**
- * Simple step that computes supervised evaluation metrics from incoming ground truth class values and predicted
+ * Transform that computes supervised evaluation metrics from incoming ground truth class values and predicted
  * class values (as produced as output from a machine learning scheme). Can handle both numeric and nominal classes.
  * When the class is nominal, it is assumed that the predicted values are in the form of a probability distribution for
- * each row. If the class column is called "class", and it is numeric, then the step will look for a incoming field
- * called "predicted_class". If the class is nominal, then the step will determine which values it can take on by looking
- * for fields called "predicted_class_&ltlabel1&gt", "predicted_class_&ltlabel2&gt"..., where "label1", "label2" etc. are
- * the legal values that the class can assume, and the values of these fields are the predicted probabilites associated with
- * each label for the given instance (row).
+ * each row.
  *
  * @author Mark Hall (mhall{[at]}waikato{[dot]}ac{[dot]}nz)
- * @version $Revision: $
  */
-@Transform( id = "SupervisedEvaluator", image = "WEKAS.svg", name = "Supervised Evaluator", description = "Compute supervised evaluation metrics for incoming row data that contains predictions from a learning scheme", categoryDescription = "PMI" )
-public class SupervisedEvaluatorMeta extends BaseTransformMeta<SupervisedEvaluator, SupervisedEvaluatorData>{
+@Getter
+@Setter
+@Transform(
+    id = "SupervisedEvaluator",
+    image = "WEKAS.svg",
+    name = "Supervised Evaluator",
+    description = "Compute supervised evaluation metrics for incoming row data that contains predictions from a learning scheme",
+    categoryDescription = "PMI"
+)
+@GuiPlugin
+public class SupervisedEvaluatorMeta extends BaseTransformMeta<SupervisedEvaluator, SupervisedEvaluatorData> {
 
-  protected String m_className = "";
+  public static final String GUI_PLUGIN_ELEMENT_PARENT_ID = "SUPERVISED_EVALUATOR_DIALOG_OPTIONS";
+  public static final String WIDGET_CLASS_NAME = "className";
+  public static final String WIDGET_OUTPUT_IR_STATS = "outputIRStats";
+  public static final String WIDGET_OUTPUT_AUC = "outputAUC";
 
-  protected boolean m_outputIRStats;
+  @GuiWidgetElement(
+      id = WIDGET_CLASS_NAME,
+      order = "0100",
+      type = GuiElementType.TEXT,
+      label = "SupervisedEvaluator.ClassDropDown.Label",
+      toolTip = "SupervisedEvaluator.ClassDropDown.ToolTip",
+      parentId = GUI_PLUGIN_ELEMENT_PARENT_ID,
+      groupType = GuiWidgetGroupType.BOXES,
+      group = "Options"
+  )
+  @HopMetadataProperty(key = "className")
+  private String className = "";
 
-  protected boolean m_outputAUC;
+  @GuiWidgetElement(
+      id = WIDGET_OUTPUT_IR_STATS,
+      order = "0200",
+      type = GuiElementType.CHECKBOX,
+      label = "SupervisedEvaluator.OutputIRStats.Label",
+      toolTip = "SupervisedEvaluator.OutputIRStats.ToolTip",
+      parentId = GUI_PLUGIN_ELEMENT_PARENT_ID,
+      groupType = GuiWidgetGroupType.BOXES,
+      group = "Options"
+  )
+  @HopMetadataProperty(key = "outputIRStats")
+  private boolean outputIRStats;
 
-  @SimpleStepOption public void setClassName( String name ) {
-    m_className = name;
+  @GuiWidgetElement(
+      id = WIDGET_OUTPUT_AUC,
+      order = "0300",
+      type = GuiElementType.CHECKBOX,
+      label = "SupervisedEvaluator.OutputAUCStats.Label",
+      toolTip = "SupervisedEvaluator.OutputAUCStats.ToolTip",
+      parentId = GUI_PLUGIN_ELEMENT_PARENT_ID,
+      groupType = GuiWidgetGroupType.BOXES,
+      group = "Options"
+  )
+  @HopMetadataProperty(key = "outputAUC")
+  private boolean outputAUC;
+
+  public SupervisedEvaluatorMeta() {
+    super();
   }
 
-  public String getClassName() {
-    return m_className;
+  @Override
+  public void setDefault() {
+    className = "";
+    outputIRStats = false;
+    outputAUC = false;
   }
 
-  @SimpleStepOption public void setOutputIRStats( boolean output ) {
-    m_outputIRStats = output;
+  public boolean isOutputIRStats() {
+    return outputIRStats;
   }
 
   public boolean getOutputIRStats() {
-    return m_outputIRStats;
+    return outputIRStats;
   }
 
-  @SimpleStepOption public void setOutputAUC( boolean output ) {
-    m_outputAUC = output;
+  public boolean isOutputAUC() {
+    return outputAUC;
   }
 
   public boolean getOutputAUC() {
-    return m_outputAUC;
+    return outputAUC;
   }
 
-  @Override public void setDefault() {
-    m_outputIRStats = false;
-    m_outputAUC = false;
-  }
-
-  @Override public String getXml() {
-    try {
-      return MetaHelper.getXMLForTarget( this ).toString();
-    } catch ( Exception ex ) {
-      ex.printStackTrace();
-      return "";
-    }
-  }
-
-  @Override public void loadXml( Node transformNode, IHopMetadataProvider metaStore ) {
-    try {
-      MetaHelper.loadXMLForTarget( transformNode, this );
-    } catch ( Exception e ) {
-      e.printStackTrace();
-    }
+  @Override
+  public String getDialogClassName() {
+    return SupervisedEvaluatorDialog.class.getName();
   }
 
   protected static Attribute createClassAttribute( String className, String nominalVals ) {
@@ -118,17 +146,15 @@ public class SupervisedEvaluatorMeta extends BaseTransformMeta<SupervisedEvaluat
     return classA;
   }
 
-  @Override public void getFields( IRowMeta rowMeta, String stepName, IRowMeta[] info, TransformMeta nextTransform,
+  @Override
+  public void getFields( IRowMeta rowMeta, String stepName, IRowMeta[] info, TransformMeta nextTransform,
       IVariables space, IHopMetadataProvider metadataProvider ) throws HopTransformException {
 
     if ( rowMeta != null && rowMeta.size() > 0 && !org.apache.hop.core.util.Utils.isEmpty( getClassName() ) ) {
-      // String nominalVals = space.resolve( getNominalLabelList() );
       String className = space.resolve( getClassName() );
       try {
-        // GeneralSupervisedEvaluatorUtil eval = new GeneralSupervisedEvaluatorUtil( rowMeta, className, nominalVals );
-        // trans.getPrevStepFiel;
         GeneralSupervisedEvaluatorUtil eval = new GeneralSupervisedEvaluatorUtil( rowMeta, className );
-        eval.getOutputFields( rowMeta, getOutputIRStats(), getOutputAUC() );
+        eval.getOutputFields( rowMeta, outputIRStats, outputAUC );
       } catch ( HopException e ) {
         throw new HopTransformException( e );
       }

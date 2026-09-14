@@ -33,7 +33,7 @@ import org.phalanxdev.hop.pipeline.transforms.pmi.PMIScoringClusterer;
 import org.phalanxdev.hop.pipeline.transforms.pmi.PMIScoringData;
 import org.phalanxdev.hop.pipeline.transforms.pmi.PMIScoringMeta;
 import org.phalanxdev.hop.pipeline.transforms.pmi.PMIScoringModel;
-import org.apache.hop.ui.core.vfs.HopVfsFileDialog;
+import org.apache.hop.ui.core.dialog.BaseDialog;
 import org.apache.hop.ui.core.widget.TextVar;
 import org.apache.hop.ui.pipeline.transform.BaseTransformDialog;
 import org.eclipse.swt.SWT;
@@ -55,7 +55,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -314,55 +313,16 @@ public class PMIScoringDialog extends BaseTransformDialog implements ITransformD
           filterNames[2] = BaseMessages.getString( PMIScoringMeta.PKG, "System.FileType.AllFiles" );
         }
 
-        // get current file
-        FileObject rootFile = null;
-        FileObject initialFile = null;
-        FileObject defaultInitialFile = null;
-
         try {
-          if ( m_wFilename.getText() != null ) {
-            String fname = variables.resolve( m_wFilename.getText() );
-
-            if ( !org.apache.hop.core.util.Utils.isEmpty( fname ) ) {
-              initialFile = HopVfs.getFileObject( fname );
-              // rootFile = initialFile.getFileSystem().getRoot();
-            } else {
-              // defaultInitialFile = HopVfs.getFileObject( HopGui.getInstance().getLastFileOpened() );
-              initialFile = HopVfs.getFileObject( "file:///c:/" );
-            }
-          } else {
-            // defaultInitialFile = HopVFS.getFileObject( "file:///c:/" );
-            initialFile = HopVfs.getFileObject( "file:///c:/" );
-          }
-
-          /* if ( rootFile == null ) {
-            rootFile = defaultInitialFile.getFileSystem().getRoot();
-          } */
-
-          HopVfsFileDialog fileChooserDialog = HopVfsFileDialog.getInstance() == null
-              ? new HopVfsFileDialog( shell, null, initialFile, false, false ) : HopVfsFileDialog.getInstance();
-
-              //HopGui.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
-
-          /* fileChooserDialog.setRootFile( rootFile );
-          fileChooserDialog.setInitialFile( initialFile );
-          fileChooserDialog.defaultInitialFile = rootFile; */
-
-          // String in = ( !org.apache.hop.core.util.Utils.isEmpty( m_wFilename.getText() ) ) ? initialFile.getName().getPath() : null;
-          fileChooserDialog.setFilterExtensions(extensions);
-          fileChooserDialog.setFilterNames(filterNames);
-          String
-              selectedFile = fileChooserDialog.open();
-              /* fileChooserDialog.open( shell, null, "file", true, in, extensions, filterNames,
-                  VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE ); */
+          String selectedFile =
+              BaseDialog.presentFileDialog(
+                  shell, m_wFilename, variables, extensions, filterNames, true );
 
           if ( selectedFile != null ) {
-            m_wFilename.setText( selectedFile );
-          }
-
-          // try to load model file and display model
-          if ( !loadModel() ) {
-            log.logError( BaseMessages.getString( PMIScoringMeta.PKG, "PMIScoringDialog.Log.FileLoadingError" ) );
+            // try to load model file and display model
+            if ( !loadModel() ) {
+              log.logError( BaseMessages.getString( PMIScoringMeta.PKG, "PMIScoringDialog.Log.FileLoadingError" ) );
+            }
           }
         } catch ( Exception ex ) {
           logError( "A problem occurred", ex );
@@ -372,7 +332,6 @@ public class PMIScoringDialog extends BaseTransformDialog implements ITransformD
 
     m_wbSaveFilename.addSelectionListener( new SelectionAdapter() {
       @Override public void widgetSelected( SelectionEvent e ) {
-        FileDialog dialog = new FileDialog( shell, SWT.SAVE );
         String[] extensions = null;
         String[] filterNames = null;
         if ( XStream.isPresent() ) {
@@ -392,16 +351,8 @@ public class PMIScoringDialog extends BaseTransformDialog implements ITransformD
           extensions[1] = "*";
           filterNames[1] = BaseMessages.getString( PMIScoringMeta.PKG, "System.FileType.AllFiles" );
         }
-        dialog.setFilterExtensions( extensions );
-        dialog.setFilterNames( filterNames );
-        if ( m_wSaveFilename.getText() != null ) {
-          dialog.setFileName( variables.resolve( m_wSaveFilename.getText() ) );
-        }
-
-        if ( dialog.open() != null ) {
-          m_wSaveFilename
-              .setText( dialog.getFilterPath() + System.getProperty( "file.separator" ) + dialog.getFileName() );
-        }
+        BaseDialog.presentFileDialog(
+            true, shell, m_wSaveFilename, variables, extensions, filterNames, true );
       }
     } );
 

@@ -51,9 +51,12 @@ import weka.knowledgeflow.StepManagerImpl;
  * @author Mark Hall (mhall{[at]}waikato{[dot]}ac{[dot]}nz)
  * @version $Revision: $
  */
-@Transform( id = "PMIFlowExecutor", image = "WEKAS.svg", name = "PMI Flow Executor", description =
-    "Executes a WEKA Knowledge Flow data "
-        + "mining process", documentationUrl = "http://wiki.pentaho.com/display/EAI/Knowledge+Flow", categoryDescription = "PMI" )
+@Transform(
+    id = "PMIFlowExecutor",
+    image = "WEKAS.svg",
+    name = "PMI Flow Executor",
+    description = "Executes a WEKA Knowledge Flow data mining process",
+    categoryDescription = "PMI" )
 public class PMIFlowExecutorMeta extends BaseTransformMeta<PMIFlowExecutor, PMIFlowExecutorData> {
 
   public static Class<?> PKG = PMIFlowExecutorMeta.class;

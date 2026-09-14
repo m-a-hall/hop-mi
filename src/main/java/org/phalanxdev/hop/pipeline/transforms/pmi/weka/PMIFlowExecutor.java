@@ -39,9 +39,10 @@ import weka.knowledgeflow.Flow;
 import weka.knowledgeflow.StepManager;
 import weka.knowledgeflow.StepOutputListener;
 
+import org.apache.commons.vfs2.FileObject;
+import org.apache.hop.core.vfs.HopVfs;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -84,20 +85,22 @@ public class PMIFlowExecutor extends BaseTransform<PMIFlowExecutorMeta, PMIFlowE
     m_meta = meta;
     m_data = data;
 
-    String internalTransDir = getVariable( "Internal.Transformation.Filename.Directory" );
+    String internalTransDir = getVariable( "Internal.Pipeline.Filename.Directory" );
+    if ( org.apache.hop.core.util.Utils.isEmpty( internalTransDir ) ) {
+      internalTransDir = getVariable( "Internal.Transformation.Filename.Directory" );
+    }
     m_env = new Environment();
 
     if ( !org.apache.hop.core.util.Utils.isEmpty( internalTransDir ) ) {
       try {
-        File temp = PMIFlowExecutorData.pathToURI( internalTransDir, variables );
-        internalTransDir = temp.getAbsolutePath();
+        FileObject temp = HopVfs.getFileObject( internalTransDir, this );
+        internalTransDir = HopVfs.getFilename( temp );
       } catch ( Exception ex ) {
-        //        logError( BaseMessages.getString( KFMeta.PKG, "KF.Message.Error.MalformedURI" ) ); //$NON-NLS-1$
-        return;
+        // ignore
       }
     }
-    m_env.addVariable( "Internal.Transformation.Filename.Directory", //$NON-NLS-1$
-        internalTransDir );
+    m_env.addVariable( "Internal.Pipeline.Filename.Directory", internalTransDir );
+    m_env.addVariable( "Internal.Transformation.Filename.Directory", internalTransDir );
 
     List<String> transVarsInUse = pipelineMeta.getUsedVariables();
     for ( String varName : transVarsInUse ) {

@@ -33,16 +33,21 @@ import org.phalanxdev.mi.MIEnvironmentInit;
 public class PMILifecycleListener
     implements IExtensionPoint<PluginRegistry> {
 
+  public static final String HOP_MI_AUTO_INSTALL_PACKAGES = "HOP_MI_AUTO_INSTALL_PACKAGES";
+
   @Override
   public void callExtensionPoint(ILogChannel iLogChannel, IVariables variables, PluginRegistry pluginRegistry)
       throws HopException {
     iLogChannel.logBasic("Checking and loading packages for Hop machine intelligence.");
 
+    String autoInstallProp = variables != null ? variables.getVariable(HOP_MI_AUTO_INSTALL_PACKAGES, "Y") : "Y";
+    boolean checkPackages = "Y".equalsIgnoreCase(autoInstallProp) || "true".equalsIgnoreCase(autoInstallProp);
+
     MIEnvironmentInit miEnvironmentInit = new MIEnvironmentInit();
     try {
-      miEnvironmentInit.onEnvironmentInit(true);
-    } catch (Exception ex) {
-      throw new HopException(ex);
+      miEnvironmentInit.onEnvironmentInit(checkPackages);
+    } catch (Throwable ex) {
+      iLogChannel.logError("Error initializing Hop machine intelligence environment: " + ex.getMessage(), ex);
     }
   }
 }

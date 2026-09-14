@@ -17,8 +17,6 @@ package org.phalanxdev.hop.pipeline.transforms.pmi.weka;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -31,12 +29,14 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.commons.vfs2.FileObject;
 import org.apache.hop.core.exception.HopException;
 import org.apache.hop.core.logging.ILogChannel;
 import org.apache.hop.core.row.IRowMeta;
 import org.apache.hop.core.row.IValueMeta;
 import org.apache.hop.core.row.RowDataUtil;
 import org.apache.hop.core.variables.IVariables;
+import org.apache.hop.core.vfs.HopVfs;
 import org.apache.hop.i18n.BaseMessages;
 import org.apache.hop.pipeline.PipelineMeta;
 import org.apache.hop.pipeline.transform.BaseTransformData;
@@ -174,23 +174,21 @@ public class PMIForecastingData extends BaseTransformData implements ITransformD
    * @return the model
    * @throws Exception if there is a problem laoding the model.
    */
-  public static WekaForecastingModel loadSerializedModel( File modelFile, ILogChannel log ) throws Exception {
+  public static WekaForecastingModel loadSerializedModel( FileObject modelFile, ILogChannel log ) throws Exception {
 
     Object model = null;
     Instances header = null;
 
-    InputStream is = new FileInputStream( modelFile );
-    if ( modelFile.getName().toLowerCase().endsWith( ".gz" ) ) {
+    InputStream is = HopVfs.getInputStream( modelFile );
+    if ( modelFile.getName().getBaseName().toLowerCase().endsWith( ".gz" ) ) {
       is = new GZIPInputStream( is );
     }
-    ObjectInputStream oi = SerializationHelper.getObjectInputStream( is );
+    try ( ObjectInputStream oi = SerializationHelper.getObjectInputStream( is ) ) {
+      model = oi.readObject();
 
-    model = oi.readObject();
-
-    // try and grab the header
-    header = (Instances) oi.readObject();
-
-    oi.close();
+      // try and grab the header
+      header = (Instances) oi.readObject();
+    }
 
     if ( !( model instanceof TSForecaster ) ) {
       log.logError( "[WekaForecastingData] " + BaseMessages
@@ -208,20 +206,28 @@ public class PMIForecastingData extends BaseTransformData implements ITransformD
     return wsm;
   }
 
-  public static void saveSerializedModel( WekaForecastingModel wsm, File saveTo ) throws Exception {
+  public static WekaForecastingModel loadSerializedModel( File modelFile, ILogChannel log ) throws Exception {
+    return loadSerializedModel( HopVfs.getFileObject( modelFile.getAbsolutePath() ), log );
+  }
+
+  public static void saveSerializedModel( WekaForecastingModel wsm, FileObject saveTo ) throws Exception {
 
     Object model = wsm.getModel();
     Instances header = wsm.getHeader();
-    OutputStream os = new FileOutputStream( saveTo );
+    OutputStream os = HopVfs.getOutputStream( saveTo, false );
 
-    if ( saveTo.getName().toLowerCase().endsWith( ".gz" ) ) {
+    if ( saveTo.getName().getBaseName().toLowerCase().endsWith( ".gz" ) ) {
       os = new GZIPOutputStream( os );
     }
-    ObjectOutputStream oos = new ObjectOutputStream( new BufferedOutputStream( os ) );
+    try ( ObjectOutputStream oos = new ObjectOutputStream( new BufferedOutputStream( os ) ) ) {
+      oos.writeObject( model );
+      oos.writeObject( header );
+      oos.flush();
+    }
+  }
 
-    oos.writeObject( model );
-    oos.writeObject( header );
-    oos.close();
+  public static void saveSerializedModel( WekaForecastingModel wsm, File saveTo ) throws Exception {
+    saveSerializedModel( wsm, HopVfs.getFileObject( saveTo.getAbsolutePath() ) );
   }
 
   /**

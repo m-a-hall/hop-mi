@@ -28,7 +28,8 @@ import weka.core.BatchPredictor;
 import weka.core.Instances;
 import weka.core.SerializedObject;
 
-import java.io.File;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.hop.core.vfs.HopVfs;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -232,7 +233,7 @@ public class PMIScoring extends BaseTransform<PMIScoringMeta, PMIScoringData> {
       // header that the classifier was trained with
       try {
         Instances header = m_data.getModel().getHeader();
-        m_data.mapIncomingRowMetaData( header, getInputRowMeta(), m_meta.getUpdateIncrementalModel(), log );
+        m_data.mapIncomingRowMetaData( header, getInputRowMeta(), m_meta.getUpdateIncrementalModel(), getLogChannel() );
       } catch ( Exception ex ) {
         throw new HopException(
             BaseMessages.getString( PMIScoringMeta.PKG, "PMIScoring.Error.IncomingDataFormatDoesNotMatchModel" ),
@@ -333,19 +334,7 @@ public class PMIScoring extends BaseTransform<PMIScoringMeta, PMIScoringData> {
           // try and save that sucker...
           try {
             String modName = resolve( m_meta.getSavedModelFileName() );
-            File updatedModelFile = null;
-            if ( modName.startsWith( "file:" ) ) {
-              try {
-                modName = modName.replace( " ", "%20" );
-                updatedModelFile = new File( new java.net.URI( modName ) );
-              } catch ( Exception ex ) {
-                throw new HopException(
-                    BaseMessages.getString( PMIScoringMeta.PKG, "PMIScoring.Error.MalformedURIForUpdatedModelFile" ),
-                    ex );
-              }
-            } else {
-              updatedModelFile = new File( modName );
-            }
+            FileObject updatedModelFile = HopVfs.getFileObject( modName, this );
             PMIScoringData.saveSerializedModel( m_data.getModel(), updatedModelFile );
           } catch ( Exception ex ) {
             throw new HopException(
@@ -407,8 +396,8 @@ public class PMIScoring extends BaseTransform<PMIScoringMeta, PMIScoringData> {
           ex );
     }
 
-    if ( log.isRowLevel() ) {
-      log.logRowlevel( toString(), "Read row #" + getLinesRead() + " : " + r );
+    if ( isRowLevel() ) {
+      logRowlevel( "Read row #" + getLinesRead() + " : " + r );
     }
 
     if ( checkFeedback( getLinesRead() ) ) {
@@ -431,7 +420,7 @@ public class PMIScoring extends BaseTransform<PMIScoringMeta, PMIScoringData> {
       outputRows = m_data.evaluateForRows( getInputRowMeta(), m_data.getOutputRowMeta(), m_batch, m_meta, this );
     }
 
-    if ( log.isDetailed() ) {
+    if ( isDetailed() ) {
       logDetailed( BaseMessages.getString( PMIScoringMeta.PKG, "PMIScoring.Message.PredictingBatch" ) );
     }
 
